@@ -1,2 +1,17 @@
 # HPV_Identification
-MATLAB tools for predicting habit plane variants (HPVs) using the maximum work criterion and visualizing simulated plane isosurfaces in 3D grain maps. Includes example data from DCT and topotomography experiments at ESRF ID11.
+HPV_Identification is an open-source MATLAB toolbox for identifying Martensite Habit Plane Variants (HPVs) using the maximum transformation work criterion. It includes tools for simulating and visualizing HPVs as isosurfaces within 3D grain maps. Example data is provided from DCT and topotomography experiments conducted at the ESRF ID11 beamline.
+
+# Features
+- Calculates transformation work for a list of possible HPVs using the Maximum Work Criterion
+
+- Visualizes simulated HPVs within 3D grain volumes using isosurfaces
+
+- Generates scatter plots ranking HPVs by transformation work
+
+# MATLAB requirements
+MATLAB version – Tested on MATLAB R2023b 
+
+# Dependency
+HPV_Identification requires the following dependencies:
+
+This project references [Ashley Bucsek]’s script: unit.m and Rodrot.m from the Martensitic-Transformation repository. Original code is available at [https://github.com/abucsek/Martensitic-Transformation.git].
