@@ -14,4 +14,4 @@ MATLAB version – Tested on MATLAB R2023b
 # Dependency
 HPV_Identification requires the following dependencies:
 
-This project references [Ashley Bucsek]’s script: unit.m and Rodrot.m from the Virtual-Diffraction repository. Original code is available at [](https://github.com/abucsek/Virtual-Diffraction.git).
+This project references Ashley Bucsek’s script: unit.m and Rodrot.m from the Virtual-Diffraction repository. Original code is available at [https://github.com/abucsek/Virtual-Diffraction.git].
