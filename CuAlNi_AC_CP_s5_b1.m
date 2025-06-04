@@ -57,8 +57,8 @@ b = CTM(:,4:6);
 m = CTM(:,7:9); 
 m_3dvec = vector3d(m');
 b_3dvec = vector3d(b');
-m_3dvec=reshape(double(m_3dvec),[number_of_interfaces,3]); %csv
-b_3dvec=reshape(double(b_3dvec),[number_of_interfaces,3]); %csv 
+m_double=reshape(double(m_3dvec),[number_of_interfaces,3]); %csv
+b_double=reshape(double(b_3dvec),[number_of_interfaces,3]); %csv 
 
 %%=======Orientations from Shield 1995
 % Mtex expects these as a Z and X pair
@@ -66,7 +66,7 @@ b_3dvec=reshape(double(b_3dvec),[number_of_interfaces,3]); %csv
 
 A_x=orientation.byMiller([-0.380  0.925 0],[ 0.925  0.380 0 ],CS{2});
 A1_T0=A_x;
-figure(2);
+figure(100);
 
 h_JM = Miller({1,0,0},{1,1,0},{1,1,1}, CS{2});
 plotPDF(A1_T0, h_JM, 'antipodal', 'MarkerSize',15,'marker','s',...
@@ -102,7 +102,9 @@ if save_files==true
     saveFigure(strcat(savepath,plotname, '-IPF-Key.png'));
 end
 
-%% Fig (3, 4, 5) - POLE FIGURES
+%% Fig (3) - POLE FIGURES
+% Maybe do this after finding grain boundaries to limit the number of
+% points.
 
 % ORIENTATION AND MILLER INDICES
 ebsd_phase = ebsd(phase_name)
@@ -114,7 +116,8 @@ figure (3);
 plotPDF(ori, h, 'antipodal', 'MarkerSize', 4);
 title('Pole Figure - CuAlNi-beta');
 
-% UNIT CELL
+%% Plot UNIT CELL
+% General Shape of crystal
 figure(4);
 cS = crystalShape.cube(ebsd.CS)
 plot(cS,'faceAlpha',0.2)
@@ -176,6 +179,10 @@ annotation('textbox', [0.6598 0.3847 0.0922 0.053],'String', '$m\bar{3}m$', ...
 'FontWeight', 'bold','Interpreter', 'latex');
 sgtitle('EBSD - IPF Maps','FontSize', 18,'FontWeight', 'bold');
 
+if save_files==true
+    saveFigure(strcat(savepath,plotname, '-IPF-Combined-Raw.png'));
+end
+
 %% SAVE ORIGINAL EBSD DATA BEFORE FILTERING
 
 ebsd_orig = ebsd; % Grain Reconstruction
@@ -197,13 +204,16 @@ ebsd_orig(grains(grains.numPixel < 1000)) = [];
 [grains, ebsd_orig.grainId] = calcGrains(ebsd_orig('indexed'), 'angle', 3*degree);
 % SMOOTH THE GRAIN BOUNDARIES (OPTIONAL)
 grains = smooth(grains, 5);
+
+%% Di
+figure(21);
 % Display average orientation of remaining grains
 disp(grains.meanOrientation);
 
-%% Fig (21) -  EBSD + GRAIN BOUNDARIES (CP)
+%% Fig (22) -  EBSD + GRAIN BOUNDARIES (CP)
 
 % PLOT EBSD UNFILTERED WITH GB 
-figure(21); clf;
+figure(22); clf;
 plot(ebsd_unfiltered(phase_name), color_unfiltered, 'figSize', 'huge');
 hold on;
 % PLOT ORIENTATION ON TOP
@@ -229,15 +239,15 @@ fprintf('Processing figure (31) - Fill EBSD\n');
 isBig = grains.numPixel>50;
 cSGrains = grains(isBig).meanOrientation * cS * 0.7 * sqrt(grains(isBig).area);
 %FROM JANICE'S CODE:
-CTM = readmatrix("Shield_CTM_CuAlNi_Results.csv");
-HPVNum = CTM(:,1);
-b = CTM(:,4:6);
-m = CTM(:,7:9); 
-m_3dvec = vector3d(m');
+%CTM = readmatrix("Shield_CTM_CuAlNi_Results.csv");
+%HPVNum = CTM(:,1);
+%b = CTM(:,4:6);
+%m = CTM(:,7:9); 
+%m_3dvec = vector3d(m');
 % b_3dvec = vector3d(b');
 % m_3dvec=reshape(double(m_3dvec),[number_of_interfaces,3]); %csv
 % b_3dvec=reshape(double(b_3dvec),[number_of_interfaces,3]); %csv 
-Selected_var = CTM(1,7:9)
+Selected_var = m_3dvec(1);%CTM(1,7:9)
 
 %% Fig (31) - FILLED EBSD + GRAIN BOUNDARIES (CP)
 oM_top = ipfHSVKey(CS{2});
@@ -277,10 +287,16 @@ if save_files == true
 end
 
 %% Fig 32 - POLE FIGURE WITH GRAINS
-figure (32);
-title('Pole Figure - CuAlNi-beta');
-plotPDF(ori, h, 'antipodal', 'MarkerSize', 4); 
-plot(grains(isBig).meanOrientation,0.002*cSGrains,'add2all') 
+% Not working well, maybe a for loop is needed to plot as PDF
+%figure (32);
+
+%color_subset = oM.orientation2color(grains(isBig).meanOrientation);
+%oM.orientation2color
+
+%title('Pole Figure - CuAlNi-beta');
+%plotPDF(ori, h, 'antipodal', 'MarkerSize', 4); 
+%plot(grains(isBig).meanOrientation,grains(isBig).meanOrientation * cS * 0.3,...
+%    'FaceColor',color_subset,'add2all') 
 
 
  %% Fig (41) -  PLOT ROI 
