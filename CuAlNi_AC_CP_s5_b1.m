@@ -45,27 +45,6 @@ disp('####################################')
 disp(strcat('Sample ', plotname))
 disp('####################################')
 
-%% From Janice's Code:
-
-CTM = readmatrix("Shield_CTM_CuAlNi_Results.csv");
-HPVNum = CTM(:,1);
-b = CTM(:,4:6);
-m = CTM(:,7:9); 
-m_3dvec = vector3d(m');
-b_3dvec = vector3d(b');
-m_3dvec=reshape(double(m_3dvec),[number_of_interfaces,3]); %csv
-b_3dvec=reshape(double(b_3dvec),[number_of_interfaces,3]); %csv 
-
-%%=======Orientations from Shield 1995
-% Mtex expects these as a Z and X pair
-% Images and intercepts likely need to be rotated
-
-A_x=orientation.byMiller([-0.380  0.925 0],[ 0.925  0.380 0    ],CrySym{2});
-
-figure(2);
-plotPDF(A1_T0, h, 'antipodal', 'MarkerSize',15,'marker','s',...
-    'MarkerEdgeColor','r','MarkerFaceColor','r' );
-hold on
 
 %% ========================== Figures Start ===============================
 
@@ -221,6 +200,16 @@ fprintf('Processing figure (31) - Fill EBSD\n');
 % CRYSTAL SHAPE
 isBig = grains.numPixel>50;
 cSGrains = grains(isBig).meanOrientation * cS * 0.7 * sqrt(grains(isBig).area);
+%FROM JANICE'S CODE:
+CTM = readmatrix("Shield_CTM_CuAlNi_Results.csv");
+HPVNum = CTM(:,1);
+b = CTM(:,4:6);
+m = CTM(:,7:9); 
+m_3dvec = vector3d(m');
+% b_3dvec = vector3d(b');
+% m_3dvec=reshape(double(m_3dvec),[number_of_interfaces,3]); %csv
+% b_3dvec=reshape(double(b_3dvec),[number_of_interfaces,3]); %csv 
+Selected_var = CTM(1,7:9)
 
 %% Fig (31) - FILLED EBSD + GRAIN BOUNDARIES (CP)
 oM_top = ipfHSVKey(CS{2});
@@ -241,6 +230,10 @@ rectangle('position',region,'edgecolor','r','linewidth',2); hold on;
 plot(grains(isBig).centroid + cSGrains,'FaceColor',...
     color_unfiltered(isBig,:),'linewidth',2,'FaceAlpha',0.7); hold on;
 % DRAW 3D Vector
+Z = X.*exp(-X.^2 - Y.^2);
+[U,V,W] = surfnorm(X,Y,Z);
+quiver3(Selected_var)
+
 
 % DRAW GRAIN BOUNDARY
 plot(grains.boundary, 'linewidth', 2);
