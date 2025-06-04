@@ -330,6 +330,22 @@ end
 % end
 
 
+%% Plot m vectors
+
+figure(51)
+scatter(m_3dvec,'grid','on','antipodal')
+figure(52)
+scatter(m_3dvec,'grid','on')
+
+%% Plot m vectors rotated
+
+
+figure(61)
+scatter( grains.meanOrientation(4)*m_3dvec,'grid','on','antipodal')
+figure(62)
+scatter( grains.meanOrientation(4)*m_3dvec,'grid','on')
+
+
 %% Save version information
 
 Version_output("Version_Flag.txt")
