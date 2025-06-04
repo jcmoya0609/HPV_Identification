@@ -368,7 +368,19 @@ zlabel Z;
 hold on
 plot(cS,sS(1),'faceColor','blue')
 hold off
+
 drawNow(gcm,'final')
+
+%% Choose the average grain orientaiton in the grain with the notch
+% I think that's grain 4 of the ROI, but check
+
+%% Rotate the b,m vectors for grain around the notch
+
+%% Check Adam's thesis for which variant was predicted (AM 7)
+
+%% Plot predicted variant in sample coordinate frame
+% Check if that looks consistent with data in Adam's thesis
+
 
 
 %% Save version information
