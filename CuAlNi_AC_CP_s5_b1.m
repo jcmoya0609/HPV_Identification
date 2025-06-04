@@ -1,11 +1,13 @@
 %% CLEAR ALL PRIOR OUTPUT
 clc; clear; close all;
 
-% SET-UP PATH
-setMTEXpref('voronoiMethod','jcvoronoi');
-mtexPath= '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/mtex-6.2.beta.3';  % Path to mtex folder
-addpath(mtexPath);  startup_mtex
-addpath('/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB');
+%% SET-UP PATH 
+% only needed initialy
+
+%setMTEXpref('voronoiMethod','jcvoronoi');
+%mtexPath= '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/mtex-6.2.beta.3';  % Path to mtex folder
+%addpath(mtexPath);  startup_mtex
+%addpath('/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB');
 
 %% CRYSTAL AND SPECIMEN AND SYMMETRIES 
 
@@ -19,8 +21,8 @@ setMTEXpref('zAxisDirection','IntoPlane');
 
 %% SPECIFY FILE NAMES 
 
-% PATH TO FILES
-pname = '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB';
+%RELATIVE PATH TO FILES
+pname = './Example_Data';
 fname = [pname '/CuAlNi_AC_s5_b1 Specimen 1 Site 1 Map Data 1.h5oina'];
 % SAVE NAME AND PATH
 plotname='CuAlNi_AC_s5_b1';
@@ -47,7 +49,8 @@ disp('####################################')
 
 %% From Janice's Code:
 
-CTM = readmatrix("Shield_CTM_CuAlNi_Results.csv");
+CTM = readmatrix(strcat(pname, "/Shield_CTM_CuAlNi_Results.csv"));
+number_of_interfaces=96;
 HPVNum = CTM(:,1);
 b = CTM(:,4:6);
 m = CTM(:,7:9); 
@@ -60,10 +63,12 @@ b_3dvec=reshape(double(b_3dvec),[number_of_interfaces,3]); %csv
 % Mtex expects these as a Z and X pair
 % Images and intercepts likely need to be rotated
 
-A_x=orientation.byMiller([-0.380  0.925 0],[ 0.925  0.380 0    ],CrySym{2});
-
+A_x=orientation.byMiller([-0.380  0.925 0],[ 0.925  0.380 0 ],CS{2});
+A1_T0=A_x;
 figure(2);
-plotPDF(A1_T0, h, 'antipodal', 'MarkerSize',15,'marker','s',...
+
+h_JM = Miller({1,0,0},{1,1,0},{1,1,1}, CS{2});
+plotPDF(A1_T0, h_JM, 'antipodal', 'MarkerSize',15,'marker','s',...
     'MarkerEdgeColor','r','MarkerFaceColor','r' );
 hold on
 
@@ -185,7 +190,7 @@ color_unfiltered = oM.orientation2color(ebsd_color(phase_name).orientations);
 % INITIAL GRAIN RECONSTRUCTION
 [grains, ebsd_orig.grainId] = calcGrains(ebsd_orig('indexed'), 'angle', 3*degree);
 % REMOVE SMALL GRAINS
-ebsd_orig(grains(grains.grainSize < 1000)) = [];
+ebsd_orig(grains(grains.numPixel < 1000)) = [];
 % RECOMPUTE GRAINS AFTER REMOVAL
 [grains, ebsd_orig.grainId] = calcGrains(ebsd_orig('indexed'), 'angle', 3*degree);
 % SMOOTH THE GRAIN BOUNDARIES (OPTIONAL)
@@ -292,6 +297,10 @@ plot(grains(isBig).meanOrientation,0.002*cSGrains,'add2all')
 %     saveFigure(strcat(savepath, plotname, '-IPF-EBSDZ-3degGB-Filled.png'));
 % end
 
+
+%% Save version information
+
+Version_output("Version_Flag.txt")
 
 
 
