@@ -4,10 +4,10 @@ clc; clear; close all;
 %% SET-UP PATH 
 % only needed initialy
 
-%setMTEXpref('voronoiMethod','jcvoronoi');
-%mtexPath= '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/mtex-6.2.beta.3';  % Path to mtex folder
-%addpath(mtexPath);  startup_mtex
-%addpath('/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB');
+setMTEXpref('voronoiMethod','jcvoronoi');
+mtexPath= '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/mtex-6.2.beta.3';  % Path to mtex folder
+addpath(mtexPath);  startup_mtex
+addpath('/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data');
 
 %% CRYSTAL AND SPECIMEN AND SYMMETRIES 
 
@@ -22,7 +22,9 @@ setMTEXpref('zAxisDirection','IntoPlane');
 %% SPECIFY FILE NAMES 
 
 %RELATIVE PATH TO FILES
-pname = './Example_Data';
+
+% pname = './Example_Data'; % Adam
+pname = '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data'; % Celeste
 fname = [pname '/CuAlNi_AC_s5_b1 Specimen 1 Site 1 Map Data 1.h5oina'];
 % SAVE NAME AND PATH
 plotname='CuAlNi_AC_s5_b1';
@@ -73,7 +75,6 @@ plotPDF(A1_T0, h_JM, 'antipodal', 'MarkerSize',15,'marker','s',...
     'MarkerEdgeColor','r','MarkerFaceColor','r' );
 hold on
 
-
 %% ========================== Figures Start ===============================
 
 %% Fig (1) - PLOT BAND CONTRAST 
@@ -115,12 +116,23 @@ plotPDF(ori, h, 'antipodal', 'MarkerSize', 4);
 title('Pole Figure - CuAlNi-beta');
 
 % UNIT CELL
+varnum = 1;
+Selected_var = CTM(varnum,7:9)
 figure(4);
 cS = crystalShape.cube(ebsd.CS)
-plot(cS,'faceAlpha',0.2)
+plot(cS,'faceAlpha',0.2); hold on; 
+%% DRAW 3D Vector
+quiver3(0, 0, 0, Selected_var(1), Selected_var(2), Selected_var(3), ...
+        1, 'LineWidth', 2, 'Color', 'r', 'MaxHeadSize', 0.3);
+text(Selected_var(1), Selected_var(2), Selected_var(3), ...
+     sprintf('m-vactor # %d', varnum),'FontSize', 12, 'Color', 'r');
+axis equal
+xlabel('X'); ylabel('Y'); zlabel('Z');
+% title(sprintf('m vector - # %d', varnum));
+title(sprintf('Orientation Cube w/ m-vector # %d', varnum));
+hold on;
 drawNow(gcm,'final')
-axis on
-
+axis on; hold off; return
 %% Fig (11, 12, 13, 14) - IPF MAPS
 
 %%================ IPF X ================= %%
@@ -234,14 +246,13 @@ HPVNum = CTM(:,1);
 b = CTM(:,4:6);
 m = CTM(:,7:9); 
 m_3dvec = vector3d(m');
-% b_3dvec = vector3d(b');
-% m_3dvec=reshape(double(m_3dvec),[number_of_interfaces,3]); %csv
-% b_3dvec=reshape(double(b_3dvec),[number_of_interfaces,3]); %csv 
+
 Selected_var = CTM(1,7:9)
 
 %% Fig (31) - FILLED EBSD + GRAIN BOUNDARIES (CP)
 oM_top = ipfHSVKey(CS{2});
 oM.inversePoleFigureDirection = zvector;
+bigGrainIDs = find(isBig);
 
 color_unfiltered = oM.orientation2color(ebsd_color(phase_name).orientations);
 % color_unfiltered = oM.orientation2color(grains.meanOrientation);
@@ -253,20 +264,25 @@ ebsd_filled = fill(ebsd_filled('indexed'), grains);clf;
 plot(ebsd_filled(phase_name), ebsd_filled(phase_name).orientations, 'figSize', 'large');
 hold on;
 % DRAW RECTANGLE
-rectangle('position',region,'edgecolor','r','linewidth',2); hold on;
+% rectangle('position',region,'edgecolor','r','linewidth',2); hold on;
 % DRAW GRAIN SHAPE
 plot(grains(isBig).centroid + cSGrains,'FaceColor',...
     color_unfiltered(isBig,:),'linewidth',2,'FaceAlpha',0.7); hold on;
-% DRAW 3D Vector
-Z = X.*exp(-X.^2 - Y.^2);
-[U,V,W] = surfnorm(X,Y,Z);
-quiver3(Selected_var)
-
-
 % DRAW GRAIN BOUNDARY
 plot(grains.boundary, 'linewidth', 2);
-hold off;
+hold on
 drawNow(gcm,'final')
+
+% DRAW 3D Vector
+m = [ -0.6340   -0.7274   -0.2625];
+hold on
+% visualize the trace
+quiver(grains(isBig),sSa.trace,'color','b')
+% and the m_vector
+quiver(grains(isBig),sSa.m,'color','r','project2Plane')
+
+hold off;
+
 
 % LIST GRAIN ORIENTATION
 disp(grains.meanOrientation);
