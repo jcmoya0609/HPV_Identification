@@ -337,6 +337,12 @@ scatter(m_3dvec,'grid','on','antipodal')
 figure(52)
 scatter(m_3dvec,'grid','on')
 
+figure(53)
+scatter(m_3dvec(1),'grid','on','antipodal');
+annotate(vector3d(1,0,0),'label',{'X'});
+annotate(vector3d(0,1,0),'label',{'Y'});
+annotate(vector3d(0,0,1),'label',{'Z'});
+
 %% Plot m vectors rotated
 
 
@@ -344,6 +350,25 @@ figure(61)
 scatter( grains.meanOrientation(4)*m_3dvec,'grid','on','antipodal')
 figure(62)
 scatter( grains.meanOrientation(4)*m_3dvec,'grid','on')
+
+%% Plot on crystal shape
+% https://mtex-toolbox.github.io/CrystalShapes.html 
+% https://mtex-toolbox.github.io/SlipSystems.html
+
+sS=slipSystem(b_3dvec,m_3dvec)
+
+%sS = [slipSystem.pyramidal2CA(ebsd.CS), ...
+%  slipSystem.pyramidalA(ebsd.CS)]
+figure(71)
+plot(cS,'faceAlpha',0.2)
+axis on;
+xlabel X;
+ylabel Y;
+zlabel Z;
+hold on
+plot(cS,sS(1),'faceColor','blue')
+hold off
+drawNow(gcm,'final')
 
 
 %% Save version information
