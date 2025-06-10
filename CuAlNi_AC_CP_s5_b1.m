@@ -123,18 +123,7 @@ title('Pole Figure - CuAlNi-beta');
 figure(4);
 cS = crystalShape.cube(ebsd.CS)
 plot(cS,'faceAlpha',0.2); hold on; 
-%% DRAW 3D Vector
-quiver3(0, 0, 0, Selected_var(1), Selected_var(2), Selected_var(3), ...
-        1, 'LineWidth', 2, 'Color', 'r', 'MaxHeadSize', 0.3);
-text(Selected_var(1), Selected_var(2), Selected_var(3), ...
-     sprintf('m-vactor # %d', varnum),'FontSize', 12, 'Color', 'r');
-axis equal
-xlabel('X'); ylabel('Y'); zlabel('Z');
-% title(sprintf('m vector - # %d', varnum));
-title(sprintf('Orientation Cube w/ m-vector # %d', varnum));
-hold on;
-drawNow(gcm,'final')
-axis on; hold off; return
+
 %% Fig (11, 12, 13, 14) - IPF MAPS
 
 %%================ IPF X ================= %%
@@ -251,7 +240,7 @@ isBig = grains.numPixel>50;
 cSGrains = grains(isBig).meanOrientation * cS * 0.7 * sqrt(grains(isBig).area);
 %FROM JANICE'S CODE:
 
-Selected_var = m_3dvec(1);%CTM(1,7:9)
+% Selected_var = m_3dvec(1);%CTM(1,7:9)
 
 
 %% Fig (31) - FILLED EBSD + GRAIN BOUNDARIES (CP)
@@ -277,17 +266,7 @@ plot(grains(isBig).centroid + cSGrains,'FaceColor',...
 plot(grains.boundary, 'linewidth', 2);
 hold on
 drawNow(gcm,'final')
-
-% DRAW 3D Vector
-m = [ -0.6340   -0.7274   -0.2625];
-hold on
-% visualize the trace
-quiver(grains(isBig),sSa.trace,'color','b')
-% and the m_vector
-quiver(grains(isBig),sSa.m,'color','r','project2Plane')
-
 hold off;
-
 
 % LIST GRAIN ORIENTATION
 disp(grains.meanOrientation);
@@ -349,50 +328,142 @@ figure(52)
 scatter(m_3dvec,'grid','on')
 
 figure(53)
-scatter(m_3dvec(1),'grid','on','antipodal');
+scatter(m_3dvec(7),'grid','on','antipodal');
 annotate(vector3d(1,0,0),'label',{'X'});
 annotate(vector3d(0,1,0),'label',{'Y'});
 annotate(vector3d(0,0,1),'label',{'Z'});
 
 %% Plot m vectors rotated
 
-
+%WITH ROTATION 
 figure(61)
-scatter( grains.meanOrientation(4)*m_3dvec,'grid','on','antipodal')
+scatter( grains.meanOrientation(4)*m_3dvec(7),'grid','on','antipodal')
 figure(62)
-scatter( grains.meanOrientation(4)*m_3dvec,'grid','on')
+scatter( grains.meanOrientation(4)*m_3dvec(7),'grid','on')
+
+% %% Plot on crystal shape
+% % https://mtex-toolbox.github.io/CrystalShapes.html 
+% % https://mtex-toolbox.github.io/SlipSystems.html
+% varinum = 7;
+% m_ori = grains(4).meanOrientation*m_3dvec(varinum); % V
+% b_ori = grains(4).meanOrientation*b_3dvec(varinum)
+% sS=slipSystem(b_ori,m_ori)
+% 
+% % % cSGrains = grains(4).meanOrientation * cS * 0.7 * sqrt(grains(4).area);
+% idx = find(grains.id == 4);
+% % cS_rot = rotate(cS, ori);  
+% scale = 0.7 * sqrt(grains(idx).area);
+% 
+% %sS = [slipSystem.pyramidal2CA(ebsd.CS), ...
+% %  slipSystem.pyramidalA(ebsd.CS)]
+% figure(71)
+% plot(cSGrains, 'faceColor', [1, 0.6, 0.6], 'edgeColor', 'k','LineWidth',2, 'faceAlpha', 0.2)
+% axis on; xlabel X; ylabel Y; zlabel Z; 
+% hold on
+% 
+% arrow3d(0.3 * m_ori,'FaceColor', 'black', ...
+%     'label', sprintf('m {%d}', varinum))
+% hold on
+% 
+% plot(cS, sS,'faceColor', 'blue',...
+%     'label', sprintf('b {%d}', varinum))  % blue for sS(1)
+% hold off
+% % % axis off
+% 
+% % % axis tight
+% % % drawNow(gcm,'final')
+
+
+
+%% Choose the average grain orientaiton in the grain with the notch
+% I think that's grain 4 of the ROI, but check
+grains.meanOrientation(4)
+%% Rotate the b,m vectors for grain around the notch
+ m_3drot = grains.meanOrientation(4)*m_3dvec
+ b_3drot = grains.meanOrientation(4)*b_3dvec
+%% Check Adam's thesis for which variant was predicted (AM 7)
+%% Plot predicted variant in sample coordinate frame
+varinum = 7;
+granum = 4;
+sS = slipSystem(b_3dvec, m_3dvec);
+
+% Get the grain orientation
+ori = grains.meanOrientation(granum); 
+
+% PLOT FILLED EBSD
+figure(86);
+% Rotate the crystal shape by the grain orientation
+idx = find(grains.id == grainID);
+% cS_rot = rotate(cS, ori);  
+scale = 0.7 * sqrt(grains(idx).area);
+cS_rot = ori * cS * scale;
+sS_rot = ori * sS;
+sS_scaled = scale * sS_rot;
+% plot (sS_scaled)
+% Now plot everything
+clf
+
+
+plot(cS_rot, 'faceColor', [1, 0.6, 0.6], 'edgeColor', 'k', 'LineWidth', 2, 'faceAlpha', 0.2)
+axis on; hold on
+xlabel X; ylabel Y; zlabel Z;
+plot(cS_rot, sS_scaled(varinum), ...
+    'FaceColor', 'blue', 'label', sprintf('b_{%d}', varinum));
+
+
+
+% Plot the rotated slip direction vector
+arrow3d(0.3 * (ori * m_3dvec(varinum)), ...
+    'FaceColor', 'black', 'label', sprintf('m_{%d}', varinum))
+
+hold off
+drawNow(gcm,'final')
 
 %% Plot on crystal shape
 % https://mtex-toolbox.github.io/CrystalShapes.html 
 % https://mtex-toolbox.github.io/SlipSystems.html
 
-sS=slipSystem(b_3dvec,m_3dvec)
+figure(73)
 
-%sS = [slipSystem.pyramidal2CA(ebsd.CS), ...
-%  slipSystem.pyramidalA(ebsd.CS)]
-figure(71)
-plot(cS,'faceAlpha',0.2)
-axis on;
-xlabel X;
-ylabel Y;
-zlabel Z;
+ fprintf('Fig (31) - Filled EBSD \n'); 
+[~, ebsd_filled.grainId] = calcGrains(ebsd_filled('indexed'), 'angle', 3*degree);
+ebsd_filled = fill(ebsd_filled('indexed'), grains);clf;
+plot(ebsd_filled(phase_name), ebsd_filled(phase_name).orientations, 'figSize', 'large');
+hold on;
+% DRAW GRAIN BOUNDARY
+plot(grains.boundary, 'linewidth', 2);
 hold on
-plot(cS,sS(1),'faceColor','blue')
-hold off
 
-drawNow(gcm,'final')
+% Choose a grain
+grainID = 4;
+idx = find(grains.id == grainID);
+ori = grains(idx).meanOrientation;
+center = grains(idx).centroid;
 
-%% Choose the average grain orientaiton in the grain with the notch
-% I think that's grain 4 of the ROI, but check
+% Scale crystal
+scale = 0.7 * sqrt(grains(idx).area);
+cSGrain = ori * cS * scale;
 
-%% Rotate the b,m vectors for grain around the notch
+% Transform the slip system to sample coordinates
+sS_rot = ori * sS;
 
-%% Check Adam's thesis for which variant was predicted (AM 7)
+% Plot crystal shape on top of EBSD map
+plot(center + cSGrain, 'faceColor', [1, 0.6, 0.6], ...
+    'edgeColor', 'k', 'LineWidth', 2, 'faceAlpha', 0.7); hold on;
 
-%% Plot predicted variant in sample coordinate frame
-% Check if that looks consistent with data in Adam's thesis
+varinum = 7;
+plot(center + cSGrain, sS_rot(varinum), ...
+    'FaceColor', 'blue'); 
 
 
+arrow3d(vector3d(center, center + 10 * sS_rot.b), ...
+    'FaceColor', 'black', 'label', 'b'); hold off;
+
+% 
+% % Add arrow for slip plane normal (in sample coordinates)
+% arrow3d(vector3d(center, center + 20 * sS_rot(varinum).n), ...
+%     'FaceColor', 'magenta', 'label', 'n'); 
+%     hold off;
 
 %% Save version information
 
