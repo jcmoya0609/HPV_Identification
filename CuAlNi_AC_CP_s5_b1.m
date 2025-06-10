@@ -5,9 +5,9 @@ clc; clear; close all;
 % only needed initialy
 
 setMTEXpref('voronoiMethod','jcvoronoi');
-mtexPath= '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/mtex-6.2.beta.3';  % Path to mtex folder
-addpath(mtexPath);  startup_mtex
-addpath('/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data');
+%mtexPath= '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/mtex-6.2.beta.3';  % Path to mtex folder
+%addpath(mtexPath);  startup_mtex
+%addpath('/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data');
 
 %% CRYSTAL AND SPECIMEN AND SYMMETRIES 
 
@@ -17,14 +17,17 @@ CS = {'notIndexed',crystalSymmetry('m-3m', [5.8 5.8 5.8], ...
 
 % PLOTTING CONVENTION
 setMTEXpref('xAxisDirection','east');
-setMTEXpref('zAxisDirection','IntoPlane');
+setMTEXpref('yAxisDirection','north');
+%setMTEXpref('zAxisDirection','IntoPlane');
+
+
 
 %% SPECIFY FILE NAMES 
 
 %RELATIVE PATH TO FILES
 
-% pname = './Example_Data'; % Adam
-pname = '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data'; % Celeste
+pname = './Example_Data'; % Adam
+%pname = '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data'; % Celeste
 fname = [pname '/CuAlNi_AC_s5_b1 Specimen 1 Site 1 Map Data 1.h5oina'];
 % SAVE NAME AND PATH
 plotname='CuAlNi_AC_s5_b1';
@@ -33,8 +36,11 @@ phase_name='CuAlNi-beta';
 
 %% IMPORT THE DATA 
 
-ebsd = EBSD.load(fname,CS,'interface','h5oina');
-ebsd = rotate(ebsd,rotation.byAxisAngle(xvector,180*degree))
+ebsd = EBSD.load(fname,CS,'interface','h5oina',...
+    'convertEuler2SpatialReferenceFrame','setting 1');
+
+% change plotting convention, don't rotate the data...
+%ebsd = rotate(ebsd,rotation.byAxisAngle(xvector,180*degree))
 
 %% FLAG TO SAVE FILES AND NAME 
 
@@ -78,6 +84,11 @@ hold on
 %% ========================== Figures Start ===============================
 
 %% Fig (1) - PLOT BAND CONTRAST 
+
+ebsd.how2plot.east = xvector;
+ebsd.how2plot.north = -yvector;
+ebsd.how2plot
+%%
 
 fprintf('Processing figure (1) - Band Contrast\n');
 figure(1);
@@ -231,7 +242,7 @@ end
 %% SELECTING ROI AREA AND CRYSTAL SHAPE
 
 % SELECT ROI
-xmin = 570; ymin = -200; dx = 100; dy = 100;
+xmin = 570; ymin = 200; dx = 100; dy = 100;
 % APPLY ROI
 region = [xmin ymin dx dy];
 fprintf('Processing figure (31) - Fill EBSD\n');
@@ -255,7 +266,8 @@ color_unfiltered = oM.orientation2color(ebsd_color(phase_name).orientations);
 figure(31); fprintf('Fig (31) - Filled EBSD \n'); 
 [~, ebsd_filled.grainId] = calcGrains(ebsd_filled('indexed'), 'angle', 3*degree);
 ebsd_filled = fill(ebsd_filled('indexed'), grains);clf;
-plot(ebsd_filled(phase_name), ebsd_filled(phase_name).orientations, 'figSize', 'large');
+plot(ebsd_filled(phase_name), ebsd_filled(phase_name).orientations,...
+    'figSize', 'large','coordinates','on');
 hold on;
 % DRAW RECTANGLE
 % rectangle('position',region,'edgecolor','r','linewidth',2); hold on;
@@ -330,16 +342,16 @@ scatter(m_3dvec,'grid','on')
 figure(53)
 scatter(m_3dvec(7),'grid','on','antipodal');
 annotate(vector3d(1,0,0),'label',{'X'});
-annotate(vector3d(0,1,0),'label',{'Y'});
-annotate(vector3d(0,0,1),'label',{'Z'});
+annotate(vector3d(0,-1,0),'label',{'Y'});
+annotate(vector3d(0,0,-1),'label',{'Z'});
 
 %% Plot m vectors rotated
 
 %WITH ROTATION 
 figure(61)
-scatter( grains.meanOrientation(4)*m_3dvec(7),'grid','on','antipodal')
+scatter(grains.meanOrientation(4)*m_3dvec,'grid','on','antipodal')
 figure(62)
-scatter( grains.meanOrientation(4)*m_3dvec(7),'grid','on')
+scatter(grains.meanOrientation(4)*m_3dvec(7),'grid','on')
 
 % %% Plot on crystal shape
 % % https://mtex-toolbox.github.io/CrystalShapes.html 
@@ -383,7 +395,7 @@ grains.meanOrientation(4)
  b_3drot = grains.meanOrientation(4)*b_3dvec
 %% Check Adam's thesis for which variant was predicted (AM 7)
 %% Plot predicted variant in sample coordinate frame
-varinum = 7;
+varinum = 9;% 7 is predicted at -36deg, 6 (51deg) and 9 (47deg) are others nearby
 granum = 4;
 sS = slipSystem(b_3dvec, m_3dvec);
 
@@ -393,6 +405,7 @@ ori = grains.meanOrientation(granum);
 % PLOT FILLED EBSD
 figure(86);
 % Rotate the crystal shape by the grain orientation
+grainID = 4;
 idx = find(grains.id == grainID);
 % cS_rot = rotate(cS, ori);  
 scale = 0.7 * sqrt(grains(idx).area);
@@ -419,6 +432,105 @@ arrow3d(0.3 * (ori * m_3dvec(varinum)), ...
 hold off
 drawNow(gcm,'final')
 
+%% Plot all the m vectors (no rotation)
+
+figure(80);
+% For some reason, need to start a plot before running the loop
+% Otherwise you'll get "Unrecognized field name "currentAxes"." errors
+plot(cS,'faceAlpha',0.5)
+
+t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
+    'TileIndexing', 'rowmajor');
+for k = 1:length(sS)
+  ax = nexttile;
+  plot(cS,'faceAlpha',0.5,'parent',ax)
+  title(ax,['\textbf{' int2str(k) '}:' char(sS(k).n,'latex')],'Interpreter','latex')
+  axis on
+  xlabel X; ylabel Y; zlabel Z;
+  hold on
+  plot(cS,sS(k),'facecolor','red','parent',ax)
+  %plottingConvention.default3D().setView
+  % Load direction
+  % arrow3d(0.4*xvector,'faceColor','red','linewidth',3)
+  hold off
+end
+
+%% Plot all the m vectors (with rotation)
+
+figure(81);
+% For some reason, need to start a plot before running the loop
+% Otherwise you'll get "Unrecognized field name "currentAxes"." errors
+plot(ori*cS,'faceAlpha',0.5);
+
+t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
+    'TileIndexing', 'rowmajor');
+for k = 1:length(sS)
+  ax = nexttile;
+  plot(ori*cS,'faceAlpha',0.5,'parent',ax)
+  title(ax,['\textbf{' int2str(k) '}:' char(sS(k).n,'latex')],'Interpreter','latex')
+  axis on
+  xlabel X; ylabel Y; zlabel Z;
+  hold on
+  plot(ori*cS,ori*sS(k),'facecolor','red','parent',ax)
+  %plottingConvention.default3D().setView
+  % Load direction
+  % arrow3d(0.4*xvector,'faceColor','red','linewidth',3)
+  hold off
+end
+
+%% 
+%% Plot all the m vectors (with rotation and schmid factor)
+
+% Assume uniaxial tension in x direction
+sigma = stressTensor.uniaxial(xvector)
+
+% take absolute magnitude, otherwise -x stress != x stress
+tau_rot=abs(sS_rot.SchmidFactor(sigma))
+%tau=ori*sS.SchmidFactor(sigma)
+
+[tauMax,id] = sort(tau_rot,'descend')
+
+figure(82);
+%fig = gcf;
+%ax = fig.CurrentAxes;
+% For some reason, need to start a plot before running the loop
+% Otherwise you'll get "Unrecognized field name "currentAxes"." errors
+plot(ori*cS,'faceAlpha',0.5)
+
+t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
+    'TileIndexing', 'rowmajor');
+for k = 1:length(id)
+  ax = nexttile;
+  plot(ori*cS,'faceAlpha',0.5,'parent',ax)
+  title(ax,['\textbf{' int2str(id(k)) '}:' num2str(tauMax(k))],'Interpreter','latex')
+  axis on
+  xlabel X; ylabel Y; zlabel Z;
+  hold on
+  plot(ori*cS,ori*sS(id(k)),'facecolor','red','parent',ax)
+  %plottingConvention.default3D().setView
+  % Load direction
+  % arrow3d(0.4*xvector,'faceColor','red','linewidth',3)
+  hold off
+end
+
+%% On pole figure, with markersize a function of work 
+figure(83)
+scatter(ori*sS(id).n,...
+    'MarkerSize',tauMax*1000,'grid','on','antipodal')
+
+
+%%
+figure(1000);
+
+plot(cS,'faceAlpha',0.5)
+hold on
+plot(cS,sS(1),'facecolor','blue','label','b')
+arrow3d(-0.8*sS(1).n,'faceColor','black','linewidth',2,'label','n')
+plottingConvention.default3D().setView
+
+%arrow3d(0.4*r,'faceColor','red','linewidth',2,'label','r')
+hold off
+
 %% Plot on crystal shape
 % https://mtex-toolbox.github.io/CrystalShapes.html 
 % https://mtex-toolbox.github.io/SlipSystems.html
@@ -428,7 +540,8 @@ figure(73)
  fprintf('Fig (31) - Filled EBSD \n'); 
 [~, ebsd_filled.grainId] = calcGrains(ebsd_filled('indexed'), 'angle', 3*degree);
 ebsd_filled = fill(ebsd_filled('indexed'), grains);clf;
-plot(ebsd_filled(phase_name), ebsd_filled(phase_name).orientations, 'figSize', 'large');
+plot(ebsd_filled(phase_name), ebsd_filled(phase_name).orientations,...
+    'figSize', 'large','coordinates','on');
 hold on;
 % DRAW GRAIN BOUNDARY
 plot(grains.boundary, 'linewidth', 2);
@@ -464,6 +577,14 @@ arrow3d(vector3d(center, center + 10 * sS_rot.b), ...
 % arrow3d(vector3d(center, center + 20 * sS_rot(varinum).n), ...
 %     'FaceColor', 'magenta', 'label', 'n'); 
 %     hold off;
+
+%% Try using schmid factor
+
+sigma = stressTensor.uniaxial(xvector)
+
+tau=sS.SchmidFactor(sigma)
+
+[tauMax,id] = max((tau))
 
 %% Save version information
 
