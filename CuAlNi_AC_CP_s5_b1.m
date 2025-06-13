@@ -37,7 +37,12 @@ phase_name='CuAlNi-beta';
 %% IMPORT THE DATA 
 
 ebsd = EBSD.load(fname,CS,'interface','h5oina',...
-    'convertEuler2SpatialReferenceFrame','setting 1');
+    'convertEuler2SpatialReferenceFrame','setting 2');
+
+% Need to change the plot image, but not the angles
+rot = rotation.byAxisAngle(xvector,180*degree);
+ebsd = rotate(ebsd,rot,'keepEuler');
+
 
 % change plotting convention, don't rotate the data...
 %ebsd = rotate(ebsd,rotation.byAxisAngle(xvector,180*degree))
@@ -86,14 +91,14 @@ hold on
 %% Fig (1) - PLOT BAND CONTRAST 
 
 ebsd.how2plot.east = xvector;
-ebsd.how2plot.north = -yvector;
+ebsd.how2plot.north = yvector;
 ebsd.how2plot
 %%
 
 fprintf('Processing figure (1) - Band Contrast\n');
 figure(1);
 %plot(ebsd,ebsd.bc,'micronbar','off');
-plot(ebsd,ebsd.bc);
+plot(ebsd,ebsd.bc,'coordinates','on');
 colormap gray; % this makes the image grayscale
 mtexColorbar;
 if save_files==true
@@ -217,9 +222,9 @@ ebsd_orig(grains(grains.numPixel < 1000)) = [];
 grains = smooth(grains, 5);
 
 %% Di
-figure(21);
-% Display average orientation of remaining grains
-disp(grains.meanOrientation);
+% figure(21);
+% Display average orientation of remaining grains in text
+% disp(grains.meanOrientation);
 
 %% Fig (22) -  EBSD + GRAIN BOUNDARIES (CP)
 
@@ -515,8 +520,13 @@ end
 
 %% On pole figure, with markersize a function of work 
 figure(83)
+
+scatter(grains.meanOrientation(4)*m_3dvec,'grid','on','antipodal',...
+    'MarkerSize',30,'Marker','x','MarkerEdgeColor', 'k')
+hold on
 scatter(ori*sS(id).n,...
     'MarkerSize',tauMax*1000,'grid','on','antipodal')
+hold off
 
 
 %%
@@ -578,7 +588,7 @@ arrow3d(vector3d(center, center + 10 * sS_rot.b), ...
 %     'FaceColor', 'magenta', 'label', 'n'); 
 %     hold off;
 
-%% Try using schmid factor
+%% Try using schmid factor for uniaxial
 
 sigma = stressTensor.uniaxial(xvector)
 
@@ -586,6 +596,9 @@ tau=sS.SchmidFactor(sigma)
 
 [tauMax,id] = max((tau))
 
+%% in plane angles
+
+%transpose(rad2deg(acos(dot(cross(ori*sS(id).n,zvector),yvector))))
 %% Save version information
 
 Version_output("Version_Flag.txt")
