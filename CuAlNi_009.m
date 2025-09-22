@@ -11,7 +11,8 @@
 
 %% CLEAR ALL PRIOR OUTPUT
 clc; clear; close all;
-
+mtexPath= '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/mtex-6.2.beta.3';  % Path to mtex folder
+addpath(mtexPath);  startup_mtex
 
 
 %% SET-UP PATH
