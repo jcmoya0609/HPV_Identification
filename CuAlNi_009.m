@@ -8,6 +8,7 @@
 % Using slip & schmid functions in mtex to do avail work
 
 
+
 %% CLEAR ALL PRIOR OUTPUT
 clc; clear; close all;
 
@@ -302,14 +303,20 @@ end
 
 %% Fig (23) -  EBSD + GRAIN BOUNDARIES (CP) + Crystal Shape
 
+% SELECT IPF COLOR
+color_z = oM_z.orientation2color(ebsd(phase_name).orientations);
+% color_x = oM_x.orientation2color(ebsd(phase_name).orientations);
+
 % PLOT EBSD UNFILTERED WITH GB 
 figure(23);
-
 cSGrains = grains.meanOrientation * cS * 0.7* sqrt(grains.area);
 
 
-color_x = oM_x.orientation2color(ebsd(phase_name).orientations);
-plot(ebsd(phase_name), color_x, 'figSize', 'huge','coordinates','on');
+ebsd_color = color_z;
+% grain_color = ebsd_color(grains(i).meanOrientation == ebsd(phase_name).orientations, :);
+
+
+plot(ebsd(phase_name), ebsd_color, 'figSize', 'huge','coordinates','on');
 hold on;
 % PLOT ORIENTATION ON TOP
 %plot(ebsd(phase_name), ebsd(phase_name).orientations,...
@@ -318,6 +325,14 @@ hold on;
 plot(grains.boundary, 'linewidth', 2);
 text(grains,grains.id, 'FontSize',20);
 % plot Crystal Shape
+
+% % % CP - Adjust the centroids with an offset
+% plot(grains(i).centroid + cSGrains(i), ...
+%      'faceColor', grain_color, 'edgeColor', 'k', ...
+%      'LineWidth', 2, 'faceAlpha', 0.7);
+
+
+% % ORIGINAL ADAM
 plot((grains.centroid+ cSGrains), 'faceColor', [1, 0.6, 0.6], ...
     'edgeColor', 'k', 'LineWidth', 2, 'faceAlpha', 0.7);
 
@@ -338,16 +353,16 @@ figure(42)
 scatter(m_3dvec,'grid','on')
 
 %% Choose a grain
-%idx=7; % Grain 4 with prior labelling
-%idx=9; % Grain 5 with prior labelling
-idx=3; % Grain 7 with prior labelling
+idx=7; % Grain 4 with prior labelling
+% idx=9; % Grain 5 with prior labelling
+% idx=3; % Grain 7 with prior labelling
 
 ori=grains.meanOrientation(idx);
 
-%% Draw individual grains
+%%Draw individual grains
 figure(51)
 
-plot(cSGrains(idx),'coordinates','on','faceAlpha',0.2);
+plot(cSGrains(idx),'coordinates','on','faceAlpha',0.5);
 axis on; hold on
 xlabel X; ylabel Y; zlabel Z;
 hold off
@@ -355,6 +370,7 @@ hold off
 % (0, 270) gives the X-Y plane with Y positive downward
 % need to match what the EBSD plotting axes display
 view(0,90);
+% view(3)
 
 
 %% Plot m vectors rotated
@@ -389,13 +405,15 @@ for k = 1:length(sS)
   hold off
 end
 
-%% Plot all the m vectors (with rotation)
+%% 81 Plot all the m vectors (with rotation) - ADAM
 
-figure(81);
+% figure(81);
+figure;
+
 % For some reason, need to start a plot before running the loop
 % Otherwise you'll get "Unrecognized field name "currentAxes"." errors
 plot(ori*cS,'faceAlpha',0.5);
-
+xlim([-0.5 0.5]); ylim([-0.45 0.45])
 t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
     'TileIndexing', 'rowmajor');
 for k = 1:length(sS)
@@ -405,14 +423,56 @@ for k = 1:length(sS)
   axis on
   xlabel X; ylabel Y; zlabel Z;
   hold on
-  plot(ori*cS,ori*sS(k),'facecolor','red','parent',ax)
+  plot(ori*cS,ori*sS(k),'facecolor','red', 'arrowLineWidth', 3,'LineWidth',1.5,'parent',ax)
   %plottingConvention.default3D().setView
   % Load direction
-  % arrow3d(0.4*xvector,'faceColor','red','linewidth',3)
+  arrow3d(0.4*xvector,'faceColor','k','linewidth',3)
   hold off
 end
 
-%% 
+%% 81 Plot all the m vectors (with rotation) - CP
+
+% Generate a colormap (you can use any MATLAB colormap here)
+numVectors = length(sS);
+cmap = hot(numVectors); % Use 'parula' colormap; replace with 'hot', 'cool', etc.
+
+% figure(82);
+figure;
+% For some reason, need to start a plot before running the loop
+% Otherwise you'll get "Unrecognized field name "currentAxes"." errors
+plot(ori * cS, 'faceAlpha', 0.5);
+set(gcf, 'units', 'pixels', 'position', [13,4,1610,837]);
+xlim([-0.5 0.5]); ylim([-0.45 0.45]);
+% Create a tiled layout
+t = tiledlayout(8, 12, 'TileSpacing', 'tight', 'Padding', 'tight', ...
+    'TileIndexing', 'rowmajor');
+
+% Loop through all vectors in sS
+for k = 1:numVectors
+    ax = nexttile;
+    
+    % Plot the crystal shape
+    plot(ori * cS, 'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098], 0.2, 'parent', ax ,'LineWidth', 1);
+    
+    % Title for each plot
+    title(ax, ['\textbf{' int2str(k) '}:' char(sS(k).n, 'latex')], ...
+          'Interpreter', 'latex');
+    axis on;
+    xlabel('X'); ylabel('Y'); zlabel('Z');
+    
+
+    hold on;
+    
+    % Plot the rotated shape or vector with a color from the colormap
+    plot(ori * cS, ori * sS(k), 'facecolor', cmap(k, :),0.8, ...
+         'arrowLineWidth', 3, 'LineWidth', 1.5, 'parent', ax);
+    
+    % % Add an arrow (customizable appearance)
+    % arrow3d(0.4 * xvector, 'faceColor', 'k', 'linewidth', 3);
+    
+    hold off;
+end
+% 
 %% Plot all the m vectors (with rotation and schmid factor)
 
 % Assume uniaxial tension in x direction
@@ -435,24 +495,28 @@ figure(82);
 %ax = fig.CurrentAxes;
 % For some reason, need to start a plot before running the loop
 % Otherwise you'll get "Unrecognized field name "currentAxes"." errors
-plot(ori*cS,'faceAlpha',0.5)
-
+plot(ori*cS,'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098],0.4,'LineWidth', 1)
+set(gcf, 'units', 'pixels', 'position', [13,4,1610,837]);
+xlim([-0.45 0.45]); ylim([-0.35 0.35])
 t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
     'TileIndexing', 'rowmajor');
 for k = 1:length(id)
   ax = nexttile;
-  plot(ori*cS,'faceAlpha',0.5,'parent',ax)
+  plot(ori*cS,'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098],0.4,'parent',ax,'LineWidth', 1)
   title(ax,['\textbf{' int2str(id(k)) '}:' num2str(tauMax(k))],'Interpreter','latex')
-  axis on
+  axis on; xlim([-0.45 0.45]); ylim([-0.35 0.35])
+
   xlabel X; ylabel Y; zlabel Z;
   hold on
-  plot(ori*cS,ori*sS(id(k)),'facecolor','red','parent',ax)
+  % plot(ori*cS,ori*sS(id(k)),'facecolor', cmap(k, :),'parent',ax,'LineWidth', 1.5)
+  plot(ori*cS,ori*sS(id(k)),'facecolor', 'k',0.8,'parent',ax,'LineWidth', 1.5)
+
   %plottingConvention.default3D().setView
   % Load direction
   % arrow3d(0.4*xvector,'faceColor','red','linewidth',3)
   hold off
 end
-
+axis tight
 %% On pole figure, with markersize a function of work 
 figure(83)
 
@@ -464,25 +528,70 @@ scatter(ori*sS(id).n,...
 hold off
 
 
- %%
+ %% 1000 Adam
 figure(1000);
 
-plot(cS,'faceAlpha',0.5)
+% plot(cS,'faceAlpha',0.5)
+% hold on
+% plot(cS,sS(1),'facecolor','blue','label','b')
+  plot(ori*cS,'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098],0.4,'parent',ax,'LineWidth', 1)
 hold on
-plot(cS,sS(1),'facecolor','blue','label','b')
+  plot(ori*cS,ori*sS(id(k)),'facecolor', 'k',0.8,'parent',ax,'LineWidth', 1.5)
+
 arrow3d(-0.8*sS(1).n,'faceColor','black','linewidth',2,'label','n')
 plottingConvention.default3D().setView
 
 %arrow3d(0.4*r,'faceColor','red','linewidth',2,'label','r')
 hold off
+ %% 1000 Celeste
+figure(1001);
+idx=7; % Grain 4 with prior labelling
+% idx=9; % Grain 5 with prior labelling
+% idx=3; % Grain 7 with prior labelling
+
+ori=grains.meanOrientation(idx);
+
+plot(ori*cS,'faceAlpha',0.5)
+hold on
+plot(ori*cS,sS(1),'facecolor','blue','label','b')
+
+arrow3d(-0.8*sS(1).n,'faceColor','black','linewidth',2,'label','n')
+plottingConvention.default3D().setView
+
+%arrow3d(0.4*r,'faceColor','red','linewidth',2,'label','r')
+hold off
+%%
+idx=7; % Grain 4 with prior labelling
+% idx=9; % Grain 5 with prior labelling
+% idx=3; % Grain 7 with prior labelling
+
+ori=grains.meanOrientation(idx);
+
+%%Draw individual grains
+figure(1000)
+
+plot(cSGrains(idx),'facecolor',[0.1216,0.9804 , 0.3098],0.8,'coordinates','on','faceAlpha',0.5,'LineWidth', 3);
+axis on; hold on
+xlabel X; ylabel Y; zlabel Z;
+plot(cSGrains(idx),sS(1),'facecolor','k','label','b'); hold on
+% 
+arrow3d(-0.8*sS(1).n,'faceColor','black','LineWidth', 5,'label','n')
+
+plottingConvention.default3D().setView
+hold off
+% Set the 3D view (azimuth, elevation)
+% (0, 270) gives the X-Y plane with Y positive downward
+% need to match what the EBSD plotting axes display
+view(0,90);
+% view(3)
 
 %% Plot on crystal shape
 % https://mtex-toolbox.github.io/CrystalShapes.html 
 % https://mtex-toolbox.github.io/SlipSystems.html
-
+ebsd_filled =ebsd ;
 figure(73)
 
- fprintf('Fig (31) - Filled EBSD \n'); 
+ fprintf('Fig (73) - Filled EBSD \n'); 
 [~, ebsd_filled.grainId] = calcGrains(ebsd_filled('indexed'), 'angle', 3*degree);
 ebsd_filled = fill(ebsd_filled('indexed'), grains);clf;
 plot(ebsd_filled(phase_name), ebsd_filled(phase_name).orientations,...
@@ -493,7 +602,7 @@ plot(grains.boundary, 'linewidth', 2);
 hold on
 
 % Choose a grain
-grainID = 4;
+grainID = 7;
 idx = find(grains.id == grainID);
 ori = grains(idx).meanOrientation;
 center = grains(idx).centroid;
@@ -510,8 +619,8 @@ plot(center + cSGrain, 'faceColor', [1, 0.6, 0.6], ...
     'edgeColor', 'k', 'LineWidth', 2, 'faceAlpha', 0.7); hold on;
 
 varinum = 7;
-plot(center + cSGrain, sS_rot(varinum), ...
-    'FaceColor', 'blue'); 
+% plot(center + cSGrain, sS_rot(varinum), ...
+%     'FaceColor', 'blue'); 
 
 
 arrow3d(vector3d(center, center + 10 * sS_rot.b), ...
@@ -533,7 +642,7 @@ tau=sS.SchmidFactor(sigma)
 
 %% in plane angles
 
-%transpose(rad2deg(acos(dot(cross(ori*sS(id).n,zvector),yvector))))
+% transpose(rad2deg(acos(dot(cross(ori*sS(id).n,zvector),yvector))))
 %% Save version information
 
 Version_output("Version_Flag.txt")
