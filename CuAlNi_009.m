@@ -407,49 +407,50 @@ for k = 1:length(sS)
 end
 
 %% 81 Plot all the m vectors (with rotation) - ADAM
-
+% 
 % figure(81);
-figure;
-
-% For some reason, need to start a plot before running the loop
-% Otherwise you'll get "Unrecognized field name "currentAxes"." errors
-plot(ori*cS,'faceAlpha',0.5);
-xlim([-0.5 0.5]); ylim([-0.45 0.45])
-t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
-    'TileIndexing', 'rowmajor');
-for k = 1:length(sS)
-  ax = nexttile;
-  plot(ori*cS,'faceAlpha',0.5,'parent',ax)
-  title(ax,['\textbf{' int2str(k) '}:' char(sS(k).n,'latex')],'Interpreter','latex')
-  axis on
-  xlabel X; ylabel Y; zlabel Z;
-  hold on
-  plot(ori*cS,ori*sS(k),'facecolor','red', 'arrowLineWidth', 3,'LineWidth',1.5,'parent',ax)
-  %plottingConvention.default3D().setView
-  % Load direction
-  arrow3d(0.4*xvector,'faceColor','k','linewidth',3)
-  hold off
-end
+% % figure;
+% 
+% % For some reason, need to start a plot before running the loop
+% % Otherwise you'll get "Unrecognized field name "currentAxes"." errors
+% plot(ori*cS,'faceAlpha',0.5);
+% xlim([-0.5 0.5]); ylim([-0.45 0.45])
+% t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
+%     'TileIndexing', 'rowmajor');
+% for k = 1:length(sS)
+%   ax = nexttile;
+%   plot(ori*cS,'faceAlpha',0.5,'parent',ax)
+%   title(ax,['\textbf{' int2str(k) '}:' char(sS(k).n,'latex')],'Interpreter','latex')
+%   axis on
+%   xlabel X; ylabel Y; zlabel Z;
+%   hold on
+%   plot(ori*cS,ori*sS(k),'facecolor','red', 'arrowLineWidth', 3,'LineWidth',1.5,'parent',ax)
+%   %plottingConvention.default3D().setView
+%   % Load direction
+%   arrow3d(0.4*xvector,'faceColor','k','linewidth',3)
+%   hold off
+% end
 
 %% 81 Plot all the m vectors (with rotation) - CP
 
 % Generate a colormap (you can use any MATLAB colormap here)
 numVectors = length(sS);
-cmap = hot(numVectors); % Use 'parula' colormap; replace with 'hot', 'cool', etc.
+cmap = jet(numVectors); % Use 'parula' colormap; replace with 'hot', 'cool', etc.
 
-% figure(82);
-figure;
+figure(81);
+% figure;
 % For some reason, need to start a plot before running the loop
 % Otherwise you'll get "Unrecognized field name "currentAxes"." errors
 plot(ori * cS, 'faceAlpha', 0.5);
 set(gcf, 'units', 'pixels', 'position', [13,4,1610,837]);
 xlim([-0.5 0.5]); ylim([-0.45 0.45]);
-% Create a tiled layout
-t = tiledlayout(8, 12, 'TileSpacing', 'tight', 'Padding', 'tight', ...
-    'TileIndexing', 'rowmajor');
+
+% t = tiledlayout(8, 12, 'TileSpacing', 'tight', 'Padding', 'tight', ...
+%     'TileIndexing', 'rowmajor');
 
 % Loop through all vectors in sS
 for k = 1:numVectors
+    
     ax = nexttile;
     
     % Plot the crystal shape
@@ -647,6 +648,94 @@ tau=sS.SchmidFactor(sigma)
 %% Save version information
 
 Version_output("Version_Flag.txt")
+
+%% Trying to plot layers on cube 09/2025
+
+
+
+%% 81 Plot all the m vectors (with rotation) - CP
+
+% Generate a colormap (you can use any MATLAB colormap here)
+numVectors = length(sS);
+cmap = jet(numVectors); % Use 'parula' colormap; replace with 'hot', 'cool', etc.
+
+% figure(81);
+figure;
+% For some reason, need to start a plot before running the loop
+% Otherwise you'll get "Unrecognized field name "currentAxes"." errors
+plot(ori * cS, 'faceAlpha', 0.5);
+set(gcf, 'units', 'pixels', 'position', [13,4,1610,837]);
+xlim([-0.5 0.5]); ylim([-0.45 0.45]);
+
+
+% Loop through all vectors in sS
+for k = 1:numVectors
+    ax = nexttile;
+    
+    % Plot the crystal shape
+    plot(ori * cS, 'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098], 0.2, 'parent', ax ,'LineWidth', 1);
+    
+    % Title for each plot
+    title(ax, ['\textbf{' int2str(k) '}:' char(sS(k).n, 'latex')], ...
+          'Interpreter', 'latex');
+    axis on;
+    xlabel('X'); ylabel('Y'); zlabel('Z');
+    
+
+    hold on;
+    
+    % Plot the rotated shape or vector with a color from the colormap
+    plot(ori * cS, ori * sS(k), 'facecolor', cmap(k, :),0.8, ...
+         'arrowLineWidth', 3, 'LineWidth', 1.5, 'parent', ax);
+    
+    % % Add an arrow (customizable appearance)
+    % arrow3d(0.4 * xvector, 'faceColor', 'k', 'linewidth', 3);
+    
+    hold off;
+end
+
+%% Plots individual crystals with variants from fig 81 - works
+idx=7; % Grain 4 with prior labelling
+% idx=9; % Grain 5 with prior labelling
+% idx=3; % Grain 7 with prior labelling
+
+ori=grains.meanOrientation(idx);
+%%Draw individual grains
+figure(51)
+plot(cSGrains(idx),'coordinates','on','faceAlpha',0.5);
+axis on; 
+view(0,90);
+
+% range = numVectors;
+range = [1 54 60 80];
+% Loop through all vectors in sS
+for n = 1:length(range)
+    k = range(n)
+    figure(100+k)
+    % figure('Name','Variant #',k)
+
+    % Plot the crystal shape
+    plot(ori * cS, 'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098], 0.2, 'LineWidth', 1);
+    
+    % Title for each plot
+    title(['\textbf{' int2str(k) '}:' char(sS(k).n, 'latex')], ...
+          'Interpreter', 'latex');
+    axis on;
+    xlabel('X'); ylabel('Y'); zlabel('Z');
+    
+
+    hold on;
+    
+    % Plot the rotated shape or vector with a color from the colormap
+    plot(ori * cS, ori * sS(k), 'facecolor', cmap(k, :),0.8, ...
+         'arrowLineWidth', 3, 'LineWidth', 1.5);
+    
+    % % Add an arrow (customizable appearance)
+    % arrow3d(0.4 * xvector, 'faceColor', 'k', 'linewidth', 3);
+    
+    hold off;
+    view(0,90);
+end
 
 
 
