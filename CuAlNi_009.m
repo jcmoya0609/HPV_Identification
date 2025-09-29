@@ -431,11 +431,12 @@ end
 %   hold off
 % end
 
-%% 81 Plot all the m vectors (with rotation) - CP
+%% 81 - Plot all the m vectors (with rotation) - CP
 
 % Generate a colormap (you can use any MATLAB colormap here)
 numVectors = length(sS);
 cmap = jet(numVectors); % Use 'parula' colormap; replace with 'hot', 'cool', etc.
+cmap = flipud(jet(numVectors));
 
 figure(81);
 % figure;
@@ -445,8 +446,8 @@ plot(ori * cS, 'faceAlpha', 0.5);
 set(gcf, 'units', 'pixels', 'position', [13,4,1610,837]);
 xlim([-0.5 0.5]); ylim([-0.45 0.45]);
 
-% t = tiledlayout(8, 12, 'TileSpacing', 'tight', 'Padding', 'tight', ...
-%     'TileIndexing', 'rowmajor');
+t = tiledlayout(8, 12, 'TileSpacing', 'tight', 'Padding', 'tight', ...
+    'TileIndexing', 'rowmajor');
 
 % Loop through all vectors in sS
 for k = 1:numVectors
@@ -465,8 +466,12 @@ for k = 1:numVectors
 
     hold on;
     
-    % Plot the rotated shape or vector with a color from the colormap
-    plot(ori * cS, ori * sS(k), 'facecolor', cmap(k, :),0.8, ...
+    % % Plot the rotated shape or vector with a color from the colormap
+    % plot(ori * cS, ori * sS(k), 'facecolor', cmap(k, :),0.8, ...
+    %      'arrowLineWidth', 3, 'LineWidth', 1.5, 'parent', ax);
+
+        % Plot the rotated shape or vector with a color from the colormap
+    plot(ori * cS, ori * sS(k), 'facecolor','b', ...
          'arrowLineWidth', 3, 'LineWidth', 1.5, 'parent', ax);
     
     % % Add an arrow (customizable appearance)
@@ -475,10 +480,11 @@ for k = 1:numVectors
     hold off;
 end
 % 
-%% Plot all the m vectors (with rotation and schmid factor)
+%% 82 - Plot all the m vectors (with rotation and schmid factor)
 
 % Assume uniaxial tension in x direction
 sigma = stressTensor.uniaxial(xvector)
+cmap = flipud(jet(numVectors));
 
 % rotate the slipSystem to EBSD axis
 % Gives a warning about rotating in specimen coordinates
@@ -492,26 +498,27 @@ tau_rot=abs(sS_rot.SchmidFactor(sigma))
 
 [tauMax,id] = sort(tau_rot,'descend')
 
-figure(82);
+figure(83);
 %fig = gcf;
 %ax = fig.CurrentAxes;
 % For some reason, need to start a plot before running the loop
 % Otherwise you'll get "Unrecognized field name "currentAxes"." errors
-plot(ori*cS,'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098],0.4,'LineWidth', 1)
+plot(ori*cS,'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098],0.2,'LineWidth', 1.2)
 set(gcf, 'units', 'pixels', 'position', [13,4,1610,837]);
-xlim([-0.45 0.45]); ylim([-0.35 0.35])
+% xlim([-0.45 0.45]); ylim([-0.35 0.35])
+xlim([-0.5 0.5]); ylim([-0.45 0.45]);
 t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
     'TileIndexing', 'rowmajor');
 for k = 1:length(id)
   ax = nexttile;
-  plot(ori*cS,'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098],0.4,'parent',ax,'LineWidth', 1)
+  plot(ori*cS,'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098],0.2,'parent',ax,'LineWidth', 1.2)
   title(ax,['\textbf{' int2str(id(k)) '}:' num2str(tauMax(k))],'Interpreter','latex')
   axis on; xlim([-0.45 0.45]); ylim([-0.35 0.35])
 
   xlabel X; ylabel Y; zlabel Z;
   hold on
-  % plot(ori*cS,ori*sS(id(k)),'facecolor', cmap(k, :),'parent',ax,'LineWidth', 1.5)
-  plot(ori*cS,ori*sS(id(k)),'facecolor', 'k',0.8,'parent',ax,'LineWidth', 1.5)
+  plot(ori*cS,ori*sS(id(k)),'facecolor', cmap(k, :),1.5,'parent',ax,'LineWidth', 1.5)
+  % plot(ori*cS,ori*sS(id(k)),'facecolor', 'k',0.8,'parent',ax,'LineWidth', 1.5)
 
   %plottingConvention.default3D().setView
   % Load direction
@@ -684,10 +691,11 @@ for k = 1:numVectors
 
     hold on;
     
-    % Plot the rotated shape or vector with a color from the colormap
-    plot(ori * cS, ori * sS(k), 'facecolor', cmap(k, :),0.8, ...
+    % % Plot the rotated shape or vector with a color from the colormap
+    % plot(ori * cS, ori * sS(k), 'facecolor', cmap(k, :),0.8, ...
+    %      'arrowLineWidth', 3, 'LineWidth', 1.5, 'parent', ax);
+     plot(ori * cS, ori * sS(k), 'facecolor', 'b',0.8, ...
          'arrowLineWidth', 3, 'LineWidth', 1.5, 'parent', ax);
-    
     % % Add an arrow (customizable appearance)
     % arrow3d(0.4 * xvector, 'faceColor', 'k', 'linewidth', 3);
     
@@ -707,7 +715,7 @@ axis on;
 view(0,90);
 
 % range = numVectors;
-range = [1 54 60 80];
+range = [45 ];
 % Loop through all vectors in sS
 for n = 1:length(range)
     k = range(n)

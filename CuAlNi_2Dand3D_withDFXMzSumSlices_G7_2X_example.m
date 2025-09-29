@@ -617,6 +617,8 @@ for i = 1:length(range)
     fprintf('G4 Finished processing Layer: %.0f ...\n', layernum);
 end
 
+
+
 %% Mixing codes 
 mtexPath= '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/mtex-6.2.beta.3';  % Path to mtex folder
 addpath(mtexPath);  startup_mtex
@@ -638,8 +640,8 @@ plot(cSGrains(idx),'coordinates','on','faceAlpha',0.5);
 axis on; 
 view(0,90);
 
-% range = numVectors;
-range = [1 54 60 80];
+range = numVectors;
+% range = [1 54 60 80];
 % Loop through all vectors in sS
 for n = 1:length(range)
     k = range(n)
