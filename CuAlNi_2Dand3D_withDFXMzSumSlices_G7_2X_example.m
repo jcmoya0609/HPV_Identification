@@ -36,7 +36,7 @@ CS = {'notIndexed', crystalSymmetry('m-3m', [5.8 5.8 5.8], 'mineral', 'color',..
 
 % Set the X axis (i.e., the loading direction) for coloring
 ipfKey = ipfHSVKey(ebsd_beta);
-ipfKey.inversePoleFigureDirection = vector3d.Z;
+ipfKey.inversePoleFigureDirection = vector3d.X;
 
 % zsum layer stuff
 fig_layers = 7;  % 6 = SMALL ROI OPTICAL MICROGRAPH, 7 = SMALL ROI EBSD, 8 = BIG OPTICAL MICROGRAPH, 9 = BIG EBSD
@@ -152,7 +152,7 @@ fill3( [3800 3800 3300 3300],...
     [500 500 500 500],...
     [z_ROI_front z_ROI_back z_ROI_back z_ROI_front],...
     [0.3 0.3 0.3],'facealpha',0.4,'edgealpha',1)  % AB
-% % set(gcf, 'units', 'pixels', 'position', [-1899,276,477,788]);
+% % % set(gcf, 'units', 'pixels', 'position', [-1899,276,477,788]);
 
 return
 %% COLORED (5) PLOT SMALL ROI EBSD (3D) - VERTICAL
@@ -298,7 +298,7 @@ medFilterNeighb = [2 2];
 xbins = (1:2560) * 42e-3;
 ybins = (1:(3*2160)) * 42e-3;
 XSTART = 3760-70;
-LAYER_SPACING = 70;
+LAYER_SPACING = 25;
 y_extra = 60
 Diffry = 5.97025;  %#ok<NASGU>  % kept for clarity
 Chi    = 0.6051;   %#ok<NASGU>
@@ -498,39 +498,29 @@ for i = 1:length(range)
     fprintf('G7 - Finished processing Layer: %.0f ...\n', layernum);
 end
 %% Grain 4 corrected
-% fig_layers = 6;
 % addpath /Volumes/MyPassport/ESRF2022_ID06/Celeste_mat_files/G4
 % addpath('/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/ThreeD_matfigures/Grain_4/Mosa_ZSums_G4/')
 addpath('/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/ThreeD_matfigures/Grain_4/Mosas/8p0_Mosas/')
+xbins = (1:2560) * 42e-3; % x and y - convert from pixels to micrometers
+ybins = (1:(3*2160)) * 42e-3; % x and y - convert from pixels to micrometers
 
-xbins = (1:2560) * 42e-3;
-ybins = (1:(3*2160)) * 42e-3;
-% XSTART = 3760;
-% LAYER_SPACING = 70;
-% y_extra = 60
-% Diffry = 6.1164;  %#ok<NASGU>  % kept for clarity
-% Chi    = 0.765;   %#ok<NASGU>
-% flipbeam = 0;
-
-
-
-% User Inputs
+% % User Inputs
 fig_layers       = 6;
 % matfile_name_G4  = '8p0_Brown_mosalayer_10x_%02d.mat';
 matfile_name_G4  = '8p0__ZSUM_Mosas_10x_%02d.mat';
-Diffry           = 5.97025;  
-Chi              = 0.6051; 
-diffty           = 0.05; 
-difftz           = -0.43; 
+Diffry           = 5.97025;% mm
+Chi              = 0.6051; % mm 
+diffty           = 0.04;   % mm
+difftz           = 0.5;   % mm
 XSTART           = 3700;   % FIRST LAYER'S VERTICAL POSITION 
-LAYER_SPACING    = 70;     % LAYER SPACING IN MICRONS
+% XSTART           = 4000;   % FIRST LAYER'S VERTICAL POSITION 
+
+LAYER_SPACING    = 25; % µm LAYER SPACING IN MICRONS
 thresh           = 70;
 range            = [1 2 3];
 scan_line_choice = scan_line_10X;
 
 view([-90 74]) % VIEW
-% xbins = 1 : 2560;  ybins = 1 : 3*2160;  % x and y - number of pixels
-% xbins = xbins * 42*1e-3;  ybins = ybins * 42*1e-3;  % x and y - convert from pixels to micrometers
 
 % Loop Starts:
 for i = 1:length(range)
@@ -592,14 +582,13 @@ for i = 1:length(range)
     X = X - 150; 
     X(:) = XSTART - LAYER_SPACING * (layernum - 1); 
 
-
     % Adjusts Y for EBSD alignment.
     Y = get(h,'ydata'); 
     Y = Y + (y_ebsd-min(min(Y))-scan_line_choice/2); 
 
 
     % Shifts Z to align with the global frame.
-    Z = get(h,'zdata'); Z = Z-65-140; Z = flipud(Z); 
+    Z = get(h,'zdata'); Z = Z-65-140; %Z = flipud(Z); 
 
 
     % Rescales intensity values (C) so all layers share the same colormap scale.
@@ -615,8 +604,150 @@ for i = 1:length(range)
     hold on; h2 = surf(X,Y,Z,C,'edgecolor','none'); 
     % zlim([-138.5 0.5]) 
     fprintf('G4 Finished processing Layer: %.0f ...\n', layernum);
+axis on
+% 
+% %------------------------ DRAWING PLANE --------------------------
+%  % Coordinates of labeled points
+L1 = [3702, 680,   0];
+L2 = [3702, 719, -127];
+L3 = [3677, 652,   0];
+L4 = [3677, 688, -127];
+L5 = [3652, 625,   0];
+L6 = [3652, 659, -127];
+
+%l1a
+figure(fig_layers); hold on;
+plot3(L1(1), L1(2), L1(3), 'r.', 'MarkerSize', 22);  % x,y,z separately
+text(L1(1), L1(2), L1(3), '  L1', 'Color', 'r', 'FontWeight', 'bold');
+% L2
+plot3(L2(1), L2(2), L2(3), 'r.', 'MarkerSize', 22);
+text(L2(1), L2(2), L2(3), '  L2', 'Color', 'r', 'FontWeight', 'bold');
+
+% L3
+plot3(L3(1), L3(2), L3(3), 'b.', 'MarkerSize', 22);
+text(L3(1), L3(2), L3(3), '  L3', 'Color', 'b', 'FontWeight', 'bold');
+
+% L4
+plot3(L4(1), L4(2), L4(3), 'b.', 'MarkerSize', 22);
+text(L4(1), L4(2), L4(3), '  L4', 'Color', 'b', 'FontWeight', 'bold');
+
+% L5
+plot3(L5(1), L5(2), L5(3), 'r.', 'MarkerSize', 22);
+text(L5(1), L5(2), L5(3), '  L5', 'Color', 'r', 'FontWeight', 'bold');
+
+% L6
+plot3(L6(1), L6(2), L6(3), 'r.', 'MarkerSize', 22);
+text(L6(1), L6(2), L6(3), '  L6', 'Color', 'r', 'FontWeight', 'bold');
 end
 
+% One quadrilateral side (L1-L2-L4-L3)
+fill3([L1(1) L2(1) L4(1) L3(1)], ...
+      [L1(2) L2(2) L4(2) L3(2)], ...
+      [L1(3) L2(3) L4(3) L3(3)], ...
+      'c', 'FaceAlpha',0.2, 'EdgeColor','m', 'LineWidth',2);
+
+% Second quadrilateral side (L3-L4-L6-L5)
+fill3([L3(1) L4(1) L6(1) L5(1)], ...
+      [L3(2) L4(2) L6(2) L5(2)], ...
+      [L3(3) L4(3) L6(3) L5(3)], ...
+      'c', 'FaceAlpha',0.2, 'EdgeColor','m', 'LineWidth',2);
+% view([-90 74])
+%% Saving 3D as .mat
+
+figH = figure(fig_layers); ax = gca; hold(ax,'on');
+
+S.view       = get(ax,'View');
+S.clim       = get(ax,'CLim');
+S.cmap       = colormap(figH);
+S.campos     = campos(ax);
+S.camtarget  = camtarget(ax);
+S.camva      = camva(ax);
+S.dataaspect = get(ax,'DataAspectRatio');
+
+hs = findobj(ax,'Type','Surface');  hp = findobj(ax,'Type','Patch');
+S.surfaces = cell(numel(hs),1);  S.patches = cell(numel(hp),1);
+
+ds = 2;  % downsample factor (use 1 for full-res; 2 halves each dim)
+
+for k = 1:numel(hs)
+    X = get(hs(k),'XData'); Y = get(hs(k),'YData');
+    Z = get(hs(k),'ZData'); C = get(hs(k),'CData');
+    S.surfaces{k} = struct( ...
+        'X', X(1:ds:end,1:ds:end), ...
+        'Y', Y(1:ds:end,1:ds:end), ...
+        'Z', Z(1:ds:end,1:ds:end), ...
+        'C', C(1:ds:end,1:ds:end), ...
+        'EdgeColor','none');
+end
+
+for k = 1:numel(hp)
+    S.patches{k} = struct( ...
+        'X', get(hp(k),'XData'), ...
+        'Y', get(hp(k),'YData'), ...
+        'Z', get(hp(k),'ZData'), ...
+        'FaceColor', get(hp(k),'FaceColor'), ...
+        'FaceAlpha', get(hp(k),'FaceAlpha'), ...
+        'EdgeColor', get(hp(k),'EdgeColor'), ...
+        'LineWidth', get(hp(k),'LineWidth'));
+end
+
+save('/Users/celesteperez/Desktop/Grain4_3D_stack.mat','-v7.3','S');
+
+% ---------- TO LOAD:
+
+% load('/Users/celesteperez/Desktop/Grain4_3D_stack.mat','S');
+% fig = figure('Color','w'); ax = axes(fig); hold(ax,'on');
+% colormap(fig, S.cmap);
+% for k = 1:numel(S.surfaces)
+%     surf(S.surfaces{k}.X, S.surfaces{k}.Y, S.surfaces{k}.Z, S.surfaces{k}.C, ...
+%          'EdgeColor', S.surfaces{k}.EdgeColor);
+% end
+% for k = 1:numel(S.patches)
+%     patch('XData',S.patches{k}.X,'YData',S.patches{k}.Y,'ZData',S.patches{k}.Z, ...
+%           'FaceColor',S.patches{k}.FaceColor,'FaceAlpha',S.patches{k}.FaceAlpha, ...
+%           'EdgeColor',S.patches{k}.EdgeColor,'LineWidth',S.patches{k}.LineWidth);
+% end
+% axis(ax,'vis3d','equal');
+% set(ax,'CLim',S.clim,'DataAspectRatio',S.dataaspect);
+% view(ax,S.view); campos(ax,S.campos); camtarget(ax,S.camtarget); camva(ax,S.camva);
+
+
+
+%% Recreating plane
+% --- Set your target axes and the plane normal from your fit ---
+% axTarget = gca;                 % <- change if needed
+axTarget = [3702 669    0;   % L1
+    3702 708 -127;   % L2
+    3630 641    0;   % L3
+    3630 677 -127;   % L4
+    3560 614    0;   % L5
+    3560 648 -127];  % L6
+n = n(:) / norm(n);             % <- paste your fitted normal here if not in workspace
+
+% Choose an anchor at the center of the current axes
+xL = get(axTarget,'XLim');  yL = get(axTarget,'YLim');  zL = get(axTarget,'ZLim');
+p0 = [mean(xL), mean(yL), mean(zL)];   % plane passes through this point
+
+% Build an orthonormal basis (u,v) lying in the plane
+% Pick a vector not parallel to n
+a = [0 0 1]; 
+if abs(dot(a,n)) > 0.99, a = [0 1 0]; end
+u = cross(n,a); u = u / norm(u);
+v = cross(n,u);                    % already unit length
+
+% Size the plane to fill the axes nicely
+span = 0.6 * max([diff(xL), diff(yL), diff(zL)]);     % adjust 0.6 as desired
+
+% Make a grid in the (u,v) directions and map to XYZ
+[U,Vv] = meshgrid(linspace(-span, span, 40), linspace(-span, span, 40));
+X = p0(1) + U.*u(1) + Vv.*v(1);
+Y = p0(2) + U.*u(2) + Vv.*v(2);
+Z = p0(3) + U.*u(3) + Vv.*v(3);
+
+% Draw the plane
+hold(axTarget,'on');
+hs = surf(axTarget, X, Y, Z, 'EdgeColor','none', 'FaceAlpha',0.25);
+title(axTarget,'Oriented Plane'); xlabel(axTarget,'X'); ylabel(axTarget,'Y'); zlabel(axTarget,'Z'); view(axTarget,3); grid(axTarget,'on');
 
 
 %% Mixing codes 
@@ -640,8 +771,8 @@ plot(cSGrains(idx),'coordinates','on','faceAlpha',0.5);
 axis on; 
 view(0,90);
 
-range = numVectors;
-% range = [1 54 60 80];
+% range = numVectors;
+range = [1 54 60 80];
 % Loop through all vectors in sS
 for n = 1:length(range)
     k = range(n)

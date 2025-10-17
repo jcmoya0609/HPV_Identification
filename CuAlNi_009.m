@@ -7,7 +7,7 @@
 % Plotting rotated m vectors
 % Using slip & schmid functions in mtex to do avail work
 
-
+warning('off')
 
 %% CLEAR ALL PRIOR OUTPUT
 clc; clear; close all;
@@ -129,13 +129,12 @@ plotPDF(A1_T0, h_JM, 'antipodal', 'MarkerSize',15,'marker','s',...
 hold on
 
 %% ========================== Figures Start ===============================
-
-%% Fig (1) - PLOT BAND CONTRAST 
+%% PLOT BAND CONTRAST 
 
 ebsd.how2plot.east = xvector;
 ebsd.how2plot.north = yvector;
 ebsd.how2plot
-%%
+%% Fig (1) - Optical image 
 
 fprintf('Processing figure (1) - Band Contrast\n');
 figure(1);
@@ -148,7 +147,6 @@ rectangle('position',ROI,'edgecolor','y','linewidth',2);
 if save_files==true
     saveFigure(strcat(savepath, plotname, '-FullBandContrast.png'));
 end
-
 %% Fig (2) - EXPLICIT ORIENTATION COLORING
 fprintf('Processing figure (2) - IPF Map\n');
 
@@ -173,17 +171,17 @@ h = Miller({1,0,0},{1,1,0},{1,1,1}, CS{2}); % 100 - face ; 110 edge ; 111 corner
 ori = ebsd_phase.orientations
 
 % POLE FIGURE
+
 figure (3);
 plotPDF(ori, h, 'antipodal', 'MarkerSize', 4);
 title('Pole Figure - CuAlNi-beta');
 
+% return
 %% Plot UNIT CELL
 % General Shape of crystal
-
 figure(4);
 cS = crystalShape.cube(ebsd_phase.CS)
 plot(cS,'faceAlpha',0.2); hold on; 
-
 %% Crop and Resample?
 % could crop and resample to reduce the size of the data...
 
@@ -218,9 +216,10 @@ plot(ebsd(phase_name),color_unfiltered,'figSize','large');
 if save_files==true
     saveFigure(strcat(savepath,plotname, '-IPF-EBSDZ-Raw.png'));
 end
-
 %% ================ IPF Maps Subplot ================= %%
-fprintf('EBSD Subplot\n'); figure(14)
+fprintf('EBSD Subplot\n'); 
+
+figure(14)
 mtexFig = newMtexFigure('layout', [2, 2]);
 phase_name_x = phase_name;  phase_name_y = phase_name;  phase_name_z = phase_name;
 % IPF-X
@@ -280,7 +279,7 @@ grains = smooth(grains, 5);
 %% Fig (22) -  EBSD + GRAIN BOUNDARIES (CP)
 % NUMBERING IS DIFFERENT THAN WHEN ORIGINALLY PLOTTED
 % likely a change from v5.x to v6.x
-
+fprintf('Processing figure (22) -  EBSD + GRAIN BOUNDARIES (CP)\n');
 % PLOT EBSD UNFILTERED WITH GB 
 figure(22); clf;
 
@@ -301,22 +300,18 @@ if save_files == true
 end
 
 
-
 %% Fig (23) -  EBSD + GRAIN BOUNDARIES (CP) + Crystal Shape
+fprintf('Processing figure (23) -  EBSD + GRAIN BOUNDARIES (CP) + Crystal Shape\n');
 
 % SELECT IPF COLOR
-color_z = oM_z.orientation2color(ebsd(phase_name).orientations);
-% color_x = oM_x.orientation2color(ebsd(phase_name).orientations);
+% color_z = oM_z.orientation2color(ebsd(phase_name).orientations);
+color_x = oM_x.orientation2color(ebsd(phase_name).orientations);
 
 % PLOT EBSD UNFILTERED WITH GB 
 figure(23);
 cSGrains = grains.meanOrientation * cS * 0.7* sqrt(grains.area);
-
-
-ebsd_color = color_z;
+ebsd_color = color_x;
 % grain_color = ebsd_color(grains(i).meanOrientation == ebsd(phase_name).orientations, :);
-
-
 plot(ebsd(phase_name), ebsd_color, 'figSize', 'huge','coordinates','on');
 hold on;
 % PLOT ORIENTATION ON TOP
@@ -332,11 +327,9 @@ text(grains,grains.id, 'FontSize',20);
 %      'faceColor', grain_color, 'edgeColor', 'k', ...
 %      'LineWidth', 2, 'faceAlpha', 0.7);
 
-
 % % ORIGINAL ADAM
 plot((grains.centroid+ cSGrains), 'faceColor', [1, 0.6, 0.6], ...
     'edgeColor', 'k', 'LineWidth', 2, 'faceAlpha', 0.7);
-
 hold off;
 
 %%=============  Save Figure if Needed =============== %%
@@ -345,15 +338,14 @@ if save_files == true
 end
 
 
-
 %% Plot m vectors
-
 figure(41)
 scatter(m_3dvec,'grid','on','antipodal')
+
 figure(42)
 scatter(m_3dvec,'grid','on')
 
-%% Choose a grain
+%% 51 - Choose a grain
 idx=7; % Grain 4 with prior labelling
 % idx=9; % Grain 5 with prior labelling
 % idx=3; % Grain 7 with prior labelling
@@ -361,8 +353,8 @@ idx=7; % Grain 4 with prior labelling
 ori=grains.meanOrientation(idx);
 
 %%Draw individual grains
-figure(51)
 
+figure(51)
 plot(cSGrains(idx),'coordinates','on','faceAlpha',0.5);
 axis on; hold on
 xlabel X; ylabel Y; zlabel Z;
@@ -381,7 +373,8 @@ figure(61)
 scatter(grains.meanOrientation(idx)*m_3dvec,'grid','on','antipodal');
 
 
-%% Define using slipSystem in mtex
+%% 80 - Define using slipSystem in mtex W/O rotations
+fprintf('Processing figure (80) -  Define using slipSystem in mtex W/O rotations\n');
 
 sS = slipSystem(b_3dvec, m_3dvec);
 
@@ -406,39 +399,42 @@ for k = 1:length(sS)
   hold off
 end
 
-%% 81 Plot all the m vectors (with rotation) - ADAM
-% 
-% figure(81);
-% % figure;
-% 
-% % For some reason, need to start a plot before running the loop
-% % Otherwise you'll get "Unrecognized field name "currentAxes"." errors
-% plot(ori*cS,'faceAlpha',0.5);
-% xlim([-0.5 0.5]); ylim([-0.45 0.45])
-% t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
-%     'TileIndexing', 'rowmajor');
-% for k = 1:length(sS)
-%   ax = nexttile;
-%   plot(ori*cS,'faceAlpha',0.5,'parent',ax)
-%   title(ax,['\textbf{' int2str(k) '}:' char(sS(k).n,'latex')],'Interpreter','latex')
-%   axis on
-%   xlabel X; ylabel Y; zlabel Z;
-%   hold on
-%   plot(ori*cS,ori*sS(k),'facecolor','red', 'arrowLineWidth', 3,'LineWidth',1.5,'parent',ax)
-%   %plottingConvention.default3D().setView
-%   % Load direction
-%   arrow3d(0.4*xvector,'faceColor','k','linewidth',3)
-%   hold off
-% end
+%% 81 - Plot all the m vectors (with rotation) - ADAM
+fprintf('Processing figure (81) -  Plot all the m vectors (with rotation) - ADAM\n');
 
-%% 81 - Plot all the m vectors (with rotation) - CP
+
+figure(81);
+% figure;
+
+% For some reason, need to start a plot before running the loop
+% Otherwise you'll get "Unrecognized field name "currentAxes"." errors
+plot(ori*cS,'faceAlpha',0.5);
+xlim([-0.5 0.5]); ylim([-0.45 0.45])
+t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
+    'TileIndexing', 'rowmajor');
+for k = 1:length(sS)
+  ax = nexttile;
+  plot(ori*cS,'faceAlpha',0.5,'parent',ax)
+  title(ax,['\textbf{' int2str(k) '}:' char(sS(k).n,'latex')],'Interpreter','latex')
+  axis on
+  xlabel X; ylabel Y; zlabel Z;
+  hold on
+  plot(ori*cS,ori*sS(k),'facecolor','red', 'arrowLineWidth', 3,'LineWidth',1.5,'parent',ax)
+  %plottingConvention.default3D().setView
+  % Load direction
+  arrow3d(0.4*xvector,'faceColor','k','linewidth',3)
+  hold off
+end
+
+%% 811 - Plot all the m vectors (with rotation) - CP
+fprintf('Processing figure (81) -  Plot all the m vectors (with rotation) - CP\n');
 
 % Generate a colormap (you can use any MATLAB colormap here)
 numVectors = length(sS);
-cmap = jet(numVectors); % Use 'parula' colormap; replace with 'hot', 'cool', etc.
+% cmap = jet(numVectors); % Use 'parula' colormap; replace with 'hot', 'cool', etc.
 cmap = flipud(jet(numVectors));
 
-figure(81);
+figure(811);
 % figure;
 % For some reason, need to start a plot before running the loop
 % Otherwise you'll get "Unrecognized field name "currentAxes"." errors
@@ -479,11 +475,52 @@ for k = 1:numVectors
     
     hold off;
 end
-% 
-%% 82 - Plot all the m vectors (with rotation and schmid factor)
+
+%% 82 - Plot all the m vectors (with rotation and schmid factor) - ADAM
 
 % Assume uniaxial tension in x direction
-sigma = stressTensor.uniaxial(xvector)
+sigma = stressTensor.uniaxial(xvector);
+
+% rotate the slipSystem to EBSD axis
+% Gives a warning about rotating in specimen coordinates
+% sS_rot=ori*sS gives same warning...
+% But the pole figure rotation looks correct for this order
+sS_rot= slipSystem(ori*b_3dvec, ori*m_3dvec);
+
+% take absolute magnitude, otherwise -x stress != x stress
+tau_rot=abs(sS_rot.SchmidFactor(sigma))
+%tau=ori*sS.SchmidFactor(sigma)
+
+[tauMax,id] = sort(tau_rot,'descend')
+
+figure(82);
+%fig = gcf;
+%ax = fig.CurrentAxes;
+% For some reason, need to start a plot before running the loop
+% Otherwise you'll get "Unrecognized field name "currentAxes"." errors
+plot(ori*cS,'faceAlpha',0.5)
+
+t = tiledlayout(8,12,'TileSpacing','tight','Padding','tight',...
+    'TileIndexing', 'rowmajor');
+for k = 1:length(id)
+  ax = nexttile;
+  plot(ori*cS,'faceAlpha',0.5,'parent',ax)
+  title(ax,['\textbf{' int2str(id(k)) '}:' num2str(tauMax(k))],'Interpreter','latex')
+  axis on
+  xlabel X; ylabel Y; zlabel Z;
+  hold on
+  plot(ori*cS,ori*sS(id(k)),'facecolor','red','parent',ax)
+  %plottingConvention.default3D().setView
+  % Load direction
+  % arrow3d(0.4*xvector,'faceColor','red','linewidth',3)
+  hold off
+end
+%% 822 - Plot all the m vectors (with rotation and schmid factor) - CP
+fprintf('Processing figure (82) -  Plot all the m vectors (with rotationand schmid factor) - CP\n');
+
+% Assume uniaxial tension in x direction
+% sigma = stressTensor.dotial(xvector)
+sigma = stressTensor.uniaxial(xvector);
 cmap = flipud(jet(numVectors));
 
 % rotate the slipSystem to EBSD axis
@@ -498,7 +535,7 @@ tau_rot=abs(sS_rot.SchmidFactor(sigma))
 
 [tauMax,id] = sort(tau_rot,'descend')
 
-figure(83);
+figure(822);
 %fig = gcf;
 %ax = fig.CurrentAxes;
 % For some reason, need to start a plot before running the loop
@@ -522,12 +559,13 @@ for k = 1:length(id)
 
   %plottingConvention.default3D().setView
   % Load direction
-  % arrow3d(0.4*xvector,'faceColor','red','linewidth',3)
+  arrow3d(0.4*xvector,'faceColor','red','linewidth',3)
   hold off
 end
 axis tight
-%% On pole figure, with markersize a function of work 
-figure(83)
+%% 83 - On pole figure, with markersize a function of work - Adam
+
+figure(82)
 
 scatter(ori*m_3dvec,'grid','on','antipodal',...
     'MarkerSize',30,'Marker','x','MarkerEdgeColor', 'k')
@@ -535,66 +573,134 @@ hold on
 scatter(ori*sS(id).n,...
     'MarkerSize',tauMax*1000,'grid','on','antipodal')
 hold off
+%%83 - Pole figure with plane - CP
+%%=== Center Plane_with_BothArrows.fig at (0,0) on the PF (figure 83) ===
+figure(82); 
+axPF = gca; 
+hold(axPF,'on');
+
+planePath = '/Users/celesteperez/Desktop/Plane_with_BothArrows.fig';
+
+% -- Open plane fig invisibly
+srcFig = openfig(planePath,'new','invisible');
+srcAx  = findobj(srcFig,'Type','axes','-depth',1);
+set(srcFig,'Color','w');   % use solid bg; we’ll handle alpha ourselves
+if ~isempty(srcAx), set(srcAx,'Color','w'); end
+
+% -- Export to PNG (no reliance on built-in transparency)
+tmpPng = fullfile(tempdir,'plane_overlay_pf.png');
+ok = true;
+try
+    if ~isempty(srcAx)
+        exportgraphics(srcAx,tmpPng,'ContentType','image','Resolution',300);
+    else
+        exportgraphics(srcFig,tmpPng,'ContentType','image','Resolution',300);
+    end
+catch
+    ok = false;
+end
+if ~ok
+    % Fallback via getframe
+    try
+        fr = getframe(srcAx);
+    catch
+        fr = getframe(srcFig);
+    end
+    [rgb,~] = frame2im(fr);
+    imwrite(rgb,tmpPng);
+end
+close(srcFig);
+
+% -- Read PNG (+ alpha if present)
+[img, map, alpha] = imread(tmpPng);
+if ~isempty(map), img = ind2rgb(img,map); end   % -> double [0..1]
+if ~isa(img,'double'), img = im2double(img); end
+
+% Build AlphaData: prefer embedded alpha; else use uniform 0.82
+if ~isempty(alpha)
+    A = double(alpha)/255;                      % size: [H W]
+else
+    A = 0.82;                                   % scalar fallback
+end
+
+% If AlphaData must be a matrix, expand scalar to [H W]
+[imh, imw, ~] = size(img);
+if isscalar(A)
+    A = repmat(A, imh, imw);
+end
+
+% --- Compute a centered box at (0,0) in PF data units
+xl = xlim(axPF); yl = ylim(axPF);
+R  = 0.5 * min(diff(xl), diff(yl));   % PF radius
+scale = 0.85;                         % 0<scale<=1 (tweak size)
+ar = imw/imh;                         % image aspect ratio (w/h)
+
+% Choose width/height to fit inside PF circle, centered at (0,0)
+w = 2*R*scale; 
+h = w/ar;
+if h/2 > R*scale
+    h = 2*R*scale; 
+    w = h*ar;
+end
+x1 = -w/2; x2 =  w/2; 
+y1 = -h/2; y2 =  h/2;
+
+% --- Draw on the existing PF axes (no new axes)
+hImg = image(axPF, 'XData',[x1 x2], 'YData',[y1 y2], 'CData',img);
+% Robust AlphaData assignment (avoid size errors)
+try
+    set(hImg,'AlphaData',A);
+catch
+    % Last-ditch: use uniform alpha
+    set(hImg,'AlphaData',.84);
+end
+set(hImg,'HitTest','off');   % don’t steal clicks
+uistack(hImg,'top');
+
+hold(axPF,'off');
 
 
- %% 1000 Adam
-figure(1000);
-
-% plot(cS,'faceAlpha',0.5)
-% hold on
-% plot(cS,sS(1),'facecolor','blue','label','b')
-  plot(ori*cS,'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098],0.4,'parent',ax,'LineWidth', 1)
+ %% 1000 Adam - Original (orientation is not correct)
+    figure(1000);
+plot(cS,'faceAlpha',0.5)
 hold on
-  plot(ori*cS,ori*sS(id(k)),'facecolor', 'k',0.8,'parent',ax,'LineWidth', 1.5)
-
-arrow3d(-0.8*sS(1).n,'faceColor','black','linewidth',2,'label','n')
+plot(cS,sS(47),'facecolor','blue','label','b')
+arrow3d(-0.8*sS(47).n,'faceColor','black','linewidth',1,'label','n')
 plottingConvention.default3D().setView
 
 %arrow3d(0.4*r,'faceColor','red','linewidth',2,'label','r')
 hold off
- %% 1000 Celeste
-figure(1001);
+ 
+%% Plot on crystal shape
+% https://mtex-toolbox.github.io/CrystalShapes.html 
+
+%% Figure 1001 - b direction is wrong
 idx=7; % Grain 4 with prior labelling
 % idx=9; % Grain 5 with prior labelling
 % idx=3; % Grain 7 with prior labelling
+HPVnum = 96;
 
 ori=grains.meanOrientation(idx);
-
-plot(ori*cS,'faceAlpha',0.5)
-hold on
-plot(ori*cS,sS(1),'facecolor','blue','label','b')
-
-arrow3d(-0.8*sS(1).n,'faceColor','black','linewidth',2,'label','n')
-plottingConvention.default3D().setView
-
-%arrow3d(0.4*r,'faceColor','red','linewidth',2,'label','r')
-hold off
-%%
-idx=7; % Grain 4 with prior labelling
-% idx=9; % Grain 5 with prior labelling
-% idx=3; % Grain 7 with prior labelling
-
-ori=grains.meanOrientation(idx);
-
 %%Draw individual grains
-figure(1000)
+figure(1001)
 
 plot(cSGrains(idx),'facecolor',[0.1216,0.9804 , 0.3098],0.8,'coordinates','on','faceAlpha',0.5,'LineWidth', 3);
 axis on; hold on
 xlabel X; ylabel Y; zlabel Z;
-plot(cSGrains(idx),sS(1),'facecolor','k','label','b'); hold on
+plot(cSGrains(idx),sS(HPVnum),'facecolor','k','label','b'); 
 % 
-arrow3d(-0.8*sS(1).n,'faceColor','black','LineWidth', 5,'label','n')
+arrow3d(-0.8*sS(HPVnum).n,'faceColor','black','linewidth',2,'faceAlpha',0.5,'label','n')
 
 plottingConvention.default3D().setView
 hold off
+
 % Set the 3D view (azimuth, elevation)
 % (0, 270) gives the X-Y plane with Y positive downward
 % need to match what the EBSD plotting axes display
 view(0,90);
 % view(3)
-
-%% Plot on crystal shape
+return
+%% 73 - Plot on crystal shape
 % https://mtex-toolbox.github.io/CrystalShapes.html 
 % https://mtex-toolbox.github.io/SlipSystems.html
 ebsd_filled =ebsd ;
@@ -656,11 +762,9 @@ tau=sS.SchmidFactor(sigma)
 
 Version_output("Version_Flag.txt")
 
-%% Trying to plot layers on cube 09/2025
-
-
-
+%% --------------------- Trying to plot layers on cube 09/2025 ---------------------
 %% 81 Plot all the m vectors (with rotation) - CP
+warning ('off')
 
 % Generate a colormap (you can use any MATLAB colormap here)
 numVectors = length(sS);
@@ -702,50 +806,336 @@ for k = 1:numVectors
     hold off;
 end
 
-%% Plots individual crystals with variants from fig 81 - works
+%% Plots Rotated Lattice w/ HPV - works
 idx=7; % Grain 4 with prior labelling
 % idx=9; % Grain 5 with prior labelling
 % idx=3; % Grain 7 with prior labelling
-
+% close all
 ori=grains.meanOrientation(idx);
 %%Draw individual grains
-figure(51)
-plot(cSGrains(idx),'coordinates','on','faceAlpha',0.5);
-axis on; 
-view(0,90);
 
 % range = numVectors;
-range = [45 ];
+range = [ 51:93 ];
 % Loop through all vectors in sS
 for n = 1:length(range)
     k = range(n)
+    close all
     figure(100+k)
+    % figure
     % figure('Name','Variant #',k)
 
-    % Plot the crystal shape
+    % % Plot the crystal shape
     plot(ori * cS, 'faceAlpha','facecolor',[0.1216,0.9804 , 0.3098], 0.2, 'LineWidth', 1);
-    
+
     % Title for each plot
     title(['\textbf{' int2str(k) '}:' char(sS(k).n, 'latex')], ...
-          'Interpreter', 'latex');
+          'Interpreter', 'latex', 'fontsize', 20);
     axis on;
     xlabel('X'); ylabel('Y'); zlabel('Z');
-    
+
 
     hold on;
-    
+
     % Plot the rotated shape or vector with a color from the colormap
-    plot(ori * cS, ori * sS(k), 'facecolor', cmap(k, :),0.8, ...
+    plot(ori * cS, ori * sS(k), 'facecolor', 'b',0.8, ...
          'arrowLineWidth', 3, 'LineWidth', 1.5);
-    
+     
+
     % % Add an arrow (customizable appearance)
-    % arrow3d(0.4 * xvector, 'faceColor', 'k', 'linewidth', 3);
+    arrow3d(0.4 * xvector, 'faceColor', 'r', 'linewidth', 1.5);
     
     hold off;
     view(0,90);
+% end
+%% 201 - Draw plane only - WORKS
+figure(101); clf; hold on
+title(['\textbf{' int2str(k) '}:' char(sS(k).n, 'latex')], ...
+          'Interpreter', 'latex', 'fontsize', 20);
+
+% 1) Init MTEX axes (keep handle so we don't nuke our own patches later)
+hCube = plot(ori * cS, 'faceAlpha', 0, 'edgeAlpha', 0);  % invisible cube
+
+% 2) Arrow (and MTEX’s own minimal plane glyph)
+plot(ori * cS, ori * sS(k), ...
+     'faceColor', cmap(k,:), 0.8, ...
+     'arrowLineWidth', 3, ...
+     'arrowFaceColor', 'k', ...
+     'arrowEdgeColor', 'k', ...
+     'LineWidth', 1.5); hold on
+% 2) Arrow (and MTEX’s own minimal plane glyph)
+plot(ori * cS, ori * sS(k), ...
+     'faceColor','b', 0.8, ...
+     'arrowLineWidth', 3, ...
+     'arrowFaceColor', 'k', ...
+     'arrowEdgeColor', 'k', ...
+     'LineWidth', 1.5); hold on;
+% % Add an arrow (customizable appearance)
+    arrow3d(0.4 * xvector, 'faceColor', 'r', 'linewidth', 1);
+    hold off;
+
+axis off
+% xlabel('X'); ylabel('Y'); zlabel('Z');
+%% Creates .fig of HPV Plane
+figure(101); clf; hold on
+
+fig = gcf; ax = gca;
+
+title(ax, ['\textbf{' int2str(k) '}:' char(sS(k).n, 'latex')], ...
+      'Interpreter','latex','FontSize',20);
+
+% Ensure the orientation crystal symmetry matches the crystal shape
+% (prevents the specimen/crystal coords warning)
+if exist('cS','var') && isa(cS,'crystalSymmetry') && isa(ori,'orientation')
+    if ~isequal(ori.CS, cS); ori = orientation(ori, cS, ori.SS); end
 end
 
 
+% 1) Invisible cube to initialize MTEX axes
+plot(ori*cS, 'faceAlpha',0, 'edgeAlpha',0, 'Parent', ax);
+
+% 2) Draw the plane + MTEX arrow (use proper name-value pairs; add tags)
+plot(ori*cS, ori*sS(k), ...
+     'faceColor', cmap(k,:), 'faceAlpha', 0.8, ...
+     'arrowLineWidth', 3, ...
+     'arrowFaceColor', 'k', ...
+     'arrowEdgeColor', 'k', ...
+     'LineWidth', 1.5, ...
+     'Tag','MTEX_Plane');   % tag will be pushed to created graphics objects
+
+% (Optional second tint layer; also correctly name 'faceAlpha')
+plot(ori*cS, ori*sS(k), ...
+     'faceColor','b', 'faceAlpha', 0.25, ...
+     'arrowLineWidth', 3, ...
+     'arrowFaceColor', 'k', ...
+     'arrowEdgeColor', 'k', ...
+     'LineWidth', 1.0, ...
+     'Tag','MTEX_Plane_Tint');
+
+% 3) Your custom 3D arrow (keep its handle)
+hArrowCustom = arrow3d(0.4 * xvector, 'faceColor','r', 'linewidth',1);
+set(hArrowCustom, 'Tag','CustomArrow');
+
+% 4) Clean-up: make background transparent and hide axes
+set(ax,'Color','none'); set(fig,'Color','none');
+axis(ax,'equal'); axis(ax,'tight'); axis off
+ax.XColor='none'; ax.YColor='none'; ax.ZColor='none';
+
+% 5) Remove everything except plane patches and both arrows
+%    - Keep: any object tagged 'MTEX_Plane*' or 'CustomArrow'
+kids = allchild(ax);
+for i = 1:numel(kids)
+    obj = kids(i);
+    tg  = get(obj,'Tag');
+    if ischar(tg) && (startsWith(tg,'MTEX_Plane') || strcmp(tg,'CustomArrow'))
+        continue; % keep
+    end
+    tp = get(obj,'Type');
+    switch tp
+        case {'text','line','quiver','quivergroup'}
+            delete(obj);
+        case {'surface','patch'}
+            % If it's not one of the plane/arrow objects, NaN it out (safer than delete)
+            if ~(ischar(tg) && (startsWith(tg,'MTEX_Plane') || strcmp(tg,'CustomArrow')))
+                if isprop(obj,'ZData') && ~isempty(get(obj,'ZData'))
+                    Z = get(obj,'ZData'); set(obj,'ZData',nan(size(Z)));
+                end
+                if isprop(obj,'CData') && ~isempty(get(obj,'CData'))
+                    C = get(obj,'CData'); set(obj,'CData',nan(size(C)));
+                end
+                if isprop(obj,'Vertices') && ~isempty(get(obj,'Vertices'))
+                    V = get(obj,'Vertices'); V(:) = nan; set(obj,'Vertices',V);
+                end
+            end
+        otherwise
+            % For any other graphic type, try deleting
+            try, delete(obj); end
+    end
+end
+
+% -------------- 6) Save .fig with transparent background
+% % outPath = '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data/Plane_with_BothArrows.fig';
+% outPath = sprintf(['/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data/HPV_Planes/' ...
+%                    'Plane_with_BothArrows_%d.fig'], k);
+% 
+% try
+%     savefig(fig, outPath);
+%     fprintf('✅ Saved to:\n%s\n', outPath);
+% catch ME
+%     warning('⚠️ Could not save figure:\n%s', ME.message);
+% end
+
+
+end
+return
+%%
+%% =====================================================
+%  Plot Grain 4 3D Stack + Import + Resize Plane Figure
+% ======================================================
+hpv_num = [70];
+% --- Load your 3D stack (Grain4_3D_stack.mat) ---
+pname = '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data';
+fname = [pname '/Grain4_3D_stack.mat'];
+load(fname, 'S');
+
+figure(444); clf;
+set(gcf, 'Color', 'w');
+ax = axes('Parent', gcf); hold(ax,'on');
+colormap(gcf, S.cmap);
+
+% --- Plot the 3D stack surfaces and patches ---
+for k = 1:numel(S.surfaces)
+    surf(S.surfaces{k}.X, S.surfaces{k}.Y, S.surfaces{k}.Z, S.surfaces{k}.C, ...
+         'EdgeColor', S.surfaces{k}.EdgeColor);
+end
+for k = 1:numel(S.patches)
+    patch('XData',S.patches{k}.X,'YData',S.patches{k}.Y,'ZData',S.patches{k}.Z, ...
+          'FaceColor',S.patches{k}.FaceColor,'FaceAlpha',S.patches{k}.FaceAlpha, ...
+          'EdgeColor',S.patches{k}.EdgeColor,'LineWidth',S.patches{k}.LineWidth);
+end
+
+axis(ax,'vis3d','equal');
+set(ax,'CLim',S.clim,'DataAspectRatio',S.dataaspect);
+view(ax,S.view);
+campos(ax,S.campos); camtarget(ax,S.camtarget); camva(ax,S.camva);
+view(ax,0,90); hold(ax,'on');
+
+% %---------------------------------------------------------------------
+% % --- LOAD VERIFICATION PLANE - PlanesOnly.fig invisibly ---
+% planeFig = openfig('/Users/celesteperez/Desktop/PlanesOnly.fig','invisible');
+% planeAx  = findobj(planeFig,'Type','axes');
+% % - Copy all children (planes, etc.) ---
+% planeChildren = get(planeAx, 'Children');
+% % - Shift every object's XData by -100 ---
+% xShift = -300;   % negative = move left, positive = move right
+% 
+% for i = 1:numel(planeChildren)
+%     obj = planeChildren(i);
+%     % Handle surfaces, patches, or lines
+%     if isprop(obj, 'XData')
+%         X = get(obj, 'XData');
+%         if ~isempty(X)
+%             set(obj, 'XData', X + xShift);
+%         end
+%     end
+% end
+% % - Copy shifted objects into your main figure axes ---
+% copyobj(planeChildren, ax);
+% close(planeFig);   % close the temp figure
+
+%---------------------------------------------------------------------
+%%=== LOAD HPV PLANE ===
+folder   = '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/Example_Data/HPV_Planes';
+fname    = sprintf('Plane_with_BothArrows_%d.fig', hpv_num);   % or '%02d' if zero-padded
+planePath = fullfile(folder, fname);
+
+assert(isfile(planePath), 'File not found: %s', planePath);
+
+tmpFig = openfig(planePath, 'new', 'invisible');
+tmpAx  = findobj(tmpFig, 'Type', 'axes', '-depth', 1);
 
 
 
+
+% planePath = '/Users/celesteperez/Desktop/Plane_with_BothArrows.fig';
+% tmpFig = openfig(planePath, 'new', 'invisible');
+% tmpAx  = findobj(tmpFig, 'Type', 'axes', '-depth', 1);
+
+% Collect plane + arrows (tag-based preferred)
+objs = findobj(tmpAx, '-regexp', 'Tag', '^(MTEX_Plane|MTEX_Plane_Tint|CustomArrow)$');
+if isempty(objs)
+    objs = findobj(tmpAx, '-or', 'Type','patch', 'Type','surface', 'Type','line');
+end
+
+%  Copy them into your current 3D figure
+newObjs = copyobj(objs, ax);
+close(tmpFig);
+
+%  Resize the imported plane to match the 6-point plane ===
+%  Target plane bounding box from your coordinates
+xRange_target = [3640 3710];
+yRange_target = [625  720];
+zRange_target = [-130   0];
+span_target   = [diff(xRange_target), diff(yRange_target), diff(zRange_target)];
+
+%  Collect XYZ from imported objects
+allX = []; allY = []; allZ = [];
+for i = 1:numel(newObjs)
+    o = newObjs(i);
+    if isprop(o,'XData') && isprop(o,'YData') && isprop(o,'ZData')
+        X = get(o,'XData'); Y = get(o,'YData'); Z = get(o,'ZData');
+        if ~isempty(X) && ~isempty(Y) && ~isempty(Z)
+            allX = [allX; double(X(:))];
+            allY = [allY; double(Y(:))];
+            allZ = [allZ; double(Z(:))];
+        end
+    end
+end
+
+%  Bail if no geometry found
+if isempty(allX)
+    warning('No valid geometry found in imported plane.');
+else
+    bbox_plane = [min(allX) max(allX);
+                  min(allY) max(allY);
+                  min(allZ) max(allZ)];
+    span_plane = [diff(bbox_plane(1,:)), diff(bbox_plane(2,:)), diff(bbox_plane(3,:))];
+    span_plane(span_plane==0) = 1;
+
+    % Uniform scale factor
+    ratios = span_target ./ span_plane;
+    scaleFactor = median(ratios(isfinite(ratios)));
+    if isempty(scaleFactor) || scaleFactor <= 0, scaleFactor = 1; end
+
+    % Centers and translation
+    center_plane  = mean(bbox_plane,2)';
+    center_target = [mean(xRange_target), mean(yRange_target), mean(zRange_target)];
+    translation   = center_target - center_plane;
+
+    % Apply transform
+    for i = 1:numel(newObjs)
+        o = newObjs(i);
+        if isprop(o,'XData') && isprop(o,'YData') && isprop(o,'ZData')
+            X = get(o,'XData'); Y = get(o,'YData'); Z = get(o,'ZData');
+            Xn = (double(X) - center_plane(1))*scaleFactor + center_target(1);
+            Yn = (double(Y) - center_plane(2))*scaleFactor + center_target(2);
+            Zn = (double(Z) - center_plane(3))*scaleFactor + center_target(3);
+            set(o,'XData',Xn,'YData',Yn,'ZData',Zn);
+        end
+    end
+    fprintf('Imported plane resized by %.3fx and centered at [%.1f, %.1f, %.1f]\n', ...
+        scaleFactor, center_target);
+end
+
+%  Finalize visualization ===
+axis(ax,'vis3d','equal');
+
+set(ax,'YDir','normal');
+title(ax, 'Grain 4 Stack + Imported Plane');
+xlim([3600,3750]); ylim([610 750])
+
+
+% view(ax,-86,80);
+view(ax,-30,24);
+
+
+% ------------ Most aligned HPV
+m = [0.742, -0.6445, -0.1844];
+m_norm = m / norm(m);
+
+xlsxPath = '/Users/celesteperez/Desktop/BUCSEK_LAB_MATLAB/Research_Github/Janice_HPV_Github/HPV_MeasuredVSCalculated/HPV_MeasuredVSCalculated.xlsx';
+sheet = 'Sheet1';
+
+% Read vectors from B7:D102
+V = readmatrix(xlsxPath, 'Sheet', sheet, 'Range', 'B7:D102');
+
+% Normalize each row
+Vnorm = V ./ vecnorm(V, 2, 2);     % divide each row by its magnitude
+
+% Compute cos(theta) = dot(m,v)/(||m|| ||v||)
+cosTheta = Vnorm * m_norm.';       % N×1
+
+% Find which is most aligned
+[maxVal, idx] = max(cosTheta);
+
+fprintf('Most aligned vector is row %d (Excel row %d) with cos(theta)=%.4f\n', ...
+    idx, idx + 6, maxVal);  % +6 because data starts at Excel row 7
